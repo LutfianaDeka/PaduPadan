@@ -100,7 +100,7 @@ export default function SwipeDrawerPage() {
                       key={item.id_item}
                       src={item.gambar}
                       alt={item.nama_item || "item"}
-                      className="w-[130px] h-[150px] object-cover rounded"
+                      className="w-[130px] h-[150px] object-contain"
                     />
                   ))}
               </div>

@@ -17,8 +17,8 @@ export default function HomePage() {
   useEffect(() => {
     const fetchPublicStyles = async () => {
       const { data, error } = await supabase
-        .from("style_wardrobe")
-        .select("*, user_id") // kamu bisa join ke auth.users jika perlu
+        .from("v_style_with_user")
+        .select("*")
         .eq("status", "public")
         .order("created_at", { ascending: false });
 
@@ -84,9 +84,7 @@ export default function HomePage() {
                     <h5 className="text-xs font-bold text-white">
                       {style.style_name}
                     </h5>
-                    <p className="text-xs text-white">
-                      User {style.user_id.slice(0, 6)}...
-                    </p>
+                    <p className="text-xs text-white">{style.username}</p>
                   </div>
                 </div>
               </div>

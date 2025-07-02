@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-export default function Preview() {
+export default function PreviewStyle() {
   const location = useLocation();
   const navigate = useNavigate();
   const capturedImg = location.state?.capturedImg;
@@ -17,7 +17,7 @@ export default function Preview() {
   const handleNext = () => {
     setIsExiting(true); // mulai animasi keluar
     setTimeout(() => {
-      navigate("/addcloset", { state: { capturedImg } }); // navigasi setelah delay
+      navigate("/form_style", { state: { capturedImg } }); // navigasi setelah delay
     }, 300); // sesuaikan dengan durasi animasi
   };
 
@@ -38,25 +38,25 @@ export default function Preview() {
       </div>
 
       {/* Konten */}
-      <div className="flex-1 overflow-y-auto flex flex-col items-center px-4 pt-6 pb-10">
+      <div className="flex-1 bg-black overflow-y-auto flex flex-col items-center px-4 pt-6 pb-10">
         <div
-          className={`w-full max-w-sm aspect-[3/4] overflow-hidden rounded-xl shadow-md border transform transition-all duration-500 ease-out ${
+          className={`w-full max-w-sm aspect-[13/15] overflow-hidden rounded-xl shadow-md border transform transition-all duration-500 ease-out ${
             showImage ? "opacity-100 scale-100" : "opacity-0 scale-95"
           }`}
         >
           <img
             src={capturedImg}
             alt="Preview"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
           />
         </div>
 
         <div className="w-full max-w-sm mt-6 pt-8 flex space-x-4">
           <button
             className="flex-1 bg-red-500 text-white font-medium py-2 rounded-full hover:bg-red-600 transition"
-            onClick={() => navigate("/kamera")}
+            onClick={() => navigate("/addstyle")}
           >
-            Ambil Ulang
+            Pilih Ulang
           </button>
           <button
             className="flex-1 bg-yellow-400 text-black font-medium py-2 rounded-full hover:bg-yellow-300 transition"

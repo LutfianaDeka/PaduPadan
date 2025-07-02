@@ -1,6 +1,7 @@
 import { ArrowLeft, MessageSquare } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
+import { supabase } from "../lib/supabase";
 
 export default function ContentPage() {
   const navigate = useNavigate();
@@ -8,6 +9,33 @@ export default function ContentPage() {
   const scrollToIndex = parseInt(searchParams.get("scrollTo"), 10);
   const postRefs = useRef([]);
   const scrollContainerRef = useRef(null);
+
+  const [publicStyles, setPublicStyles] = useState([]);
+  const [liked, setLiked] = useState([]);
+
+  // const randomImages = Array.from(
+  //   { length: 20 },
+  //   (_, i) => `https://picsum.photos/seed/${i + 1}/300/300`
+  // );
+
+  useEffect(() => {
+    const fetchPublicStyles = async () => {
+      const { data, error } = await supabase
+        .from("v_style_with_user")
+        .select("*")
+        .eq("status", "public")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Gagal ambil style:", error.message);
+      } else {
+        setPublicStyles(data);
+        setLiked(Array(data.length).fill(false)); // Init state like
+      }
+    };
+
+    fetchPublicStyles();
+  }, []);
 
   useEffect(() => {
     if (
@@ -18,14 +46,7 @@ export default function ContentPage() {
       const targetOffset = postRefs.current[scrollToIndex].offsetTop;
       scrollContainerRef.current.scrollTop = targetOffset;
     }
-  }, [scrollToIndex]);
-
-  const randomImages = Array.from(
-    { length: 20 },
-    (_, i) => `https://picsum.photos/seed/${i + 1}/300/300`
-  );
-
-  const [liked, setLiked] = useState(Array(randomImages.length).fill(false));
+  }, [scrollToIndex, publicStyles]);
 
   const toggleLike = (index) => {
     const newLiked = [...liked];
@@ -58,9 +79,9 @@ export default function ContentPage() {
           ref={scrollContainerRef}
           className="post flex flex-col gap-4 overflow-y-auto h-[calc(100vh-56px-1px)] snap-y snap-mandatory"
         >
-          {randomImages.map((src, index) => (
+          {publicStyles.map((style, index) => (
             <div
-              key={index}
+              key={style.style_id}
               className="post snap-start"
               ref={(el) => (postRefs.current[index] = el)}
             >
@@ -71,14 +92,16 @@ export default function ContentPage() {
                   alt="user"
                   className="w-10 h-10 rounded-full object-cover"
                 />
-                <p className="text-xs text-white font-bold">User {index + 1}</p>
+                <p className="text-xs text-white font-bold">
+                  {style.username || "Anonim"}
+                </p>
               </div>
 
               {/* Image & Reactions */}
               <div className="img-post">
                 <img
-                  src={src}
-                  alt={`outfit-${index}`}
+                  src={style.gambar}
+                  alt={style.style_name}
                   className="w-full aspect-square object-cover"
                 />
                 <div className="react flex gap-6 py-4 text-white px-3">
@@ -105,12 +128,10 @@ export default function ContentPage() {
                 {/* Description */}
                 <div className="desc px-3">
                   <h5 className="text-xs font-bold text-white">
-                    Nama Postingan {index + 1}
+                    {style.style_name}
                   </h5>
                   <p className="text-white text-xs">
-                    deskripsi Lorem ipsum dolor sit amet consectetur adipisicing
-                    elit. Nulla omnis debitis voluptatum reiciendis eaque! Harum
-                    vel quas hic optio officia. {index + 1}
+                    {`"${style.style_name}" oleh ${style.username || "user"}`}
                   </p>
                 </div>
               </div>

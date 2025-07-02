@@ -18,6 +18,7 @@ import Kalender from "./component/kalender";
 import AddStyle from "./component/addstyle";
 import StylePage from "./component/style";
 import FormStyle from "./component/formstyle";
+import DetailStylePage from "./component/detail_style";
 
 function App() {
   return (
@@ -42,6 +43,7 @@ function App() {
           <Route path="/kalender" element={<Kalender />} />
           <Route path="/addstyle" element={<AddStyle />} />
           <Route path="/style" element={<StylePage />} />
+          <Route path="/detail_style/:style_id" element={<DetailStylePage />} />
         </Routes>
       </Router>
     </div>
