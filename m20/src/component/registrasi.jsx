@@ -1,9 +1,19 @@
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
+import Swal from "sweetalert2";
 import { useState } from "react";
+import { supabase } from "../lib/supabase.jsx"; // connect ke supabase
+
 export default function RegistrasiPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+
+  // State form
+  const [nama, setNama] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
   const loginHandle = () => {
     navigate("/login");
     setTimeout(() => {
@@ -12,6 +22,45 @@ export default function RegistrasiPage() {
         el.scrollIntoView({ behavior: "smooth" });
       }
     }, 100);
+  };
+
+  const handleRegister = async () => {
+    // 1. Register ke Supabase Auth
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Registrasi",
+        text: error.message,
+      });
+      return;
+    }
+    const userId = data.user?.id;
+
+    // 2. Simpan tambahan data user ke tabel `users` (opsional)
+    if (userId) {
+      await supabase.from("users").insert([
+        {
+          user_id: userId,
+          username,
+          email,
+          profile_picture: "https://...", // bisa kosong dulu
+        },
+      ]);
+    }
+
+    Swal.fire({
+      icon: "success",
+      title: "Registrasi Berhasil!",
+      text: "Silakan login ke akunmu sekarang.",
+      //   text: "Silakan cek email kamu untuk verifikasi.",
+    }).then(() => {
+      navigate("/login");
+    });
   };
 
   return (
@@ -27,24 +76,32 @@ export default function RegistrasiPage() {
           <input
             type="text"
             placeholder="Nama"
-            className="text-[#FFF313] bg-[#198499]/20 border-1 border-[#FFF313] rounded-[10px] pl-4 w-62 py-3"
+            value={nama}
+            onChange={(e) => setNama(e.target.value)}
+            className="text-white bg-[#198499]/20 border-1 border-[#FFF313] rounded-[10px] pl-4 w-62 py-3"
           />
           <input
             type="text"
             placeholder="Username"
-            className="text-[#FFF313] bg-[#198499]/20 border-1 border-[#FFF313] rounded-[10px] pl-4 w-62 py-3"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="text-white bg-[#198499]/20 border-1 border-[#FFF313] rounded-[10px] pl-4 w-62 py-3"
           />
           <input
             type="email"
             placeholder="Email"
-            className="text-[#FFF313] bg-[#198499]/20 border-1 border-[#FFF313] rounded-[10px] pl-4 w-62 py-3"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="text-white bg-[#198499]/20 border-1 border-[#FFF313] rounded-[10px] pl-4 w-62 py-3"
           />
           <div className="relative w-62">
             {/* Input */}
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Password"
-              className="w-full text-[#FFF313] bg-[#198499]/20 border-1 border-[#FFF313] rounded-[10px] pl-4 pr-10 py-3"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full text-white bg-[#198499]/20 border-1 border-[#FFF313] rounded-[10px] pl-4 pr-10 py-3"
             />
 
             {/* Eye Icon Inside Input */}
@@ -58,7 +115,10 @@ export default function RegistrasiPage() {
           </div>
         </div>
         <div className="btn mb-20">
-          <button className="text-black w-62 font-bold  py-3 bg-[#FFF313] rounded-full shadow-lg transition duration-300 ease-in-out transfor hover:bg-[#E1AD01] cursor-pointer">
+          <button
+            onClick={handleRegister}
+            className="text-black w-62 font-bold  py-3 bg-[#FFF313] rounded-full shadow-lg transition duration-300 ease-in-out transfor hover:bg-[#E1AD01] cursor-pointer"
+          >
             REGISTER
           </button>
           <p

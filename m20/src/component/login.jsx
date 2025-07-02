@@ -1,9 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
+import Swal from "sweetalert2";
+import { supabase } from "../lib/supabase"; //ambil data supabase
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
   const registerHandle = () => {
     navigate("/registrasi");
@@ -14,9 +19,68 @@ export default function LoginPage() {
       }
     }, 100);
   };
+
+  const handleLogin = async () => {
+    // 1. Cari email dari username
+    const { data: users, error: userError } = await supabase
+      .from("users")
+      .select("email")
+      .eq("username", username)
+      .single(); // ambil 1 data
+
+    if (userError || !users) {
+      Swal.fire({
+        icon: "error",
+        title: "Login Gagal",
+        text: "Username tidak ditemukan",
+      });
+      return;
+    }
+
+    const email = users.email;
+
+    // 2. Login dengan email yang ditemukan
+    const { error: loginError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (loginError) {
+      let message = loginError.message;
+
+      if (message.toLowerCase().includes("invalid login")) {
+        message = "Password salah.";
+      }
+
+      Swal.fire({
+        icon: "error",
+        title: "Login Gagal",
+        text: message,
+      });
+      return;
+    } else {
+      console.log("Login Berhasil! Selamat datang di M2Outfit.");
+      document.body.classList.add("fade-out");
+
+      setTimeout(() => {
+        navigate("/home");
+      }, 200);
+    }
+  };
+
+  const handleResetPassword = () => {
+    navigate("/reset");
+    setTimeout(() => {
+      const el = document.getElementById("reset");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 100);
+  };
+
   return (
     <>
-      <div className="login min-h-screen overflow-auto bg-black flex flex-col justify-between items-center text-center gap-">
+      <div className="login min-h-screen overflow-auto bg-black flex flex-col justify-between items-center text-center">
         <h1
           className="text-[#FFF313] text-3xl mt-20"
           style={{ fontFamily: "Redressed" }}
@@ -27,14 +91,18 @@ export default function LoginPage() {
           <input
             type="text"
             placeholder="Username"
-            className="text-[#FFF313] bg-[#198499]/20 border-1 rounded-[10px] pl-4 w-62 py-3"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="text-white bg-[#198499]/20 border-1 border-[#FFF313] rounded-[10px] pl-4 w-62 py-3"
           />
           <div className="relative w-62">
             {/* Input */}
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Password"
-              className="w-full text-[#FFF313] bg-[#198499]/20 border-1 border-[#FFF313] rounded-[10px] pl-4 pr-10 py-3"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full text-white bg-[#198499]/20 border-1 border-[#FFF313] rounded-[10px] pl-4 pr-10 py-3"
             />
 
             {/* Eye Icon Inside Input */}
@@ -46,10 +114,18 @@ export default function LoginPage() {
               {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
             </button>
           </div>
-          <p className="text-white text-xs  cursor-pointer">Forgot password?</p>
+          <p
+            onClick={handleResetPassword}
+            className="text-white text-xs  cursor-pointer"
+          >
+            Forgot password?
+          </p>
         </div>
         <div className="btn mb-50">
-          <button className="text-black w-62 font-bold  py-3 bg-[#FFF313] rounded-full shadow-lg transition duration-300 ease-in-out transfor hover:bg-[#E1AD01] cursor-pointer">
+          <button
+            onClick={handleLogin}
+            className="text-black w-62 font-bold  py-3 bg-[#FFF313] rounded-full shadow-lg transition duration-300 ease-in-out transfor hover:bg-[#E1AD01] cursor-pointer"
+          >
             LOGIN
           </button>
           <p
