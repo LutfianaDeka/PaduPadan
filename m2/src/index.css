@@ -1,0 +1,23 @@
+:root {
+  font-family: "Poppins", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  --kuning: #fff313;
+  --blue: rgb(25, 132, 153);
+  --blue2: #198499;
+}
+.login input:-webkit-autofill,
+.registrasi input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+  -webkit-text-fill-color: #fff313 !important;
+  transition: background-color 5000s ease-in-out 0s;
+  border-radius: 10px !important;
+  border-color: #fff313;
+  transition: background-color 5000s ease-in-out 0s;
+}
+html {
+  scroll-behavior: smooth;
+}
+
