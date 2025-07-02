@@ -94,7 +94,7 @@ export default function AddCloset() {
         <img
           src={capturedImg}
           alt="Preview"
-          className="w-full h-full object-cover rounded-md shadow"
+          className="w-full h-full object-contain rounded-md shadow"
         />
       </div>
 

@@ -18,7 +18,7 @@ export default function Kalender() {
     });
   }, []);
 
-  // Ambil style dengan date_use untuk user ini
+  // Ambil style yang punya date_use
   useEffect(() => {
     if (!userId) return;
     supabase
@@ -30,7 +30,11 @@ export default function Kalender() {
         if (error) return console.error(error);
         const events = data.map((s) => ({
           tanggal: s.date_use,
-          style: { nama_style: s.style_name, gambar: s.gambar, id: s.style_id },
+          style: {
+            nama_style: s.style_name,
+            gambar: s.gambar,
+            id: s.style_id,
+          },
         }));
         setStyleEvents(events);
       });
@@ -38,9 +42,9 @@ export default function Kalender() {
 
   const handleDayClick = (date) => {
     const dateStr = date.toISOString().split("T")[0];
-    const found = styleEvents.filter((e) => e.tanggal === dateStr);
-    if (found.length) {
-      navigate(`/detailstyle/${found[0].style.id}`);
+    const found = styleEvents.find((e) => e.tanggal === dateStr);
+    if (found) {
+      navigate(`/detail_style/${found.style.id}`);
     }
   };
 
@@ -49,11 +53,12 @@ export default function Kalender() {
     const dstr = date.toISOString().split("T")[0];
     const matched = styleEvents.filter((e) => e.tanggal === dstr);
     if (!matched.length) return null;
+
     return (
       <div className="flex justify-center flex-wrap gap-[2px] mt-1">
         {matched.map((e, i) => (
           <img
-            key={i}
+            key={`${e.style.id}-${i}`}
             src={e.style.gambar}
             alt={e.style.nama_style}
             className="w-9 h-12 object-cover rounded-md shadow"
@@ -68,6 +73,7 @@ export default function Kalender() {
       <h2 className="text-center text-xl text-[#FFF313] font-bold mb-4">
         Kalender Outfit
       </h2>
+
       <Calendar
         className="rounded"
         onChange={setValue}

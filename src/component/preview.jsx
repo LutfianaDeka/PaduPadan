@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-export default function PreviewStyle() {
+export default function Preview() {
   const location = useLocation();
   const navigate = useNavigate();
   const capturedImg = location.state?.capturedImg;
@@ -17,7 +17,7 @@ export default function PreviewStyle() {
   const handleNext = () => {
     setIsExiting(true); // mulai animasi keluar
     setTimeout(() => {
-      navigate("/form_style", { state: { capturedImg } }); // navigasi setelah delay
+      navigate("/addcloset", { state: { capturedImg } }); // navigasi setelah delay
     }, 300); // sesuaikan dengan durasi animasi
   };
 
@@ -54,7 +54,7 @@ export default function PreviewStyle() {
         <div className="w-full max-w-sm mt-6 pt-8 flex space-x-4">
           <button
             className="flex-1 bg-red-500 text-white font-medium py-2 rounded-full hover:bg-red-600 transition"
-            onClick={() => navigate("/addstyle")}
+            onClick={() => navigate("/kamera")}
           >
             Ambil Ulang
           </button>

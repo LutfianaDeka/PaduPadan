@@ -1,11 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import BottomMenu from "./menu";
 import ClosetItemPage from "./closet_item";
 import StylePage from "./style"; // pastikan ini komponen Style
 
 export default function ClosetPage() {
-  const [activeTab, setActiveTab] = useState("closet");
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem("activeTab") || "closet";
+  });
 
+  useEffect(() => {
+    localStorage.setItem("activeTab", activeTab);
+  }, [activeTab]);
   return (
     <div className="closet min-h-screen bg-black text-white flex flex-col">
       {/* Top Tabs */}
