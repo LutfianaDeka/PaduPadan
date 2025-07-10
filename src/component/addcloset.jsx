@@ -11,7 +11,7 @@ export default function AddCloset() {
   // const [namaItem, setNamaItem] = useState("");
   const [kategori, setKategori] = useState("");
   const [userId, setUserId] = useState(null); // akan diisi dari session
-
+  
   // Ambil user_id dari session saat komponen dimount
   useEffect(() => {
     const getUser = async () => {
@@ -28,7 +28,6 @@ export default function AddCloset() {
       const id = session?.user?.id;
       setUserId(id);
     };
-
     getUser();
   }, []);
 
