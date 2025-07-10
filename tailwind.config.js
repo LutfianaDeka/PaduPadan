@@ -13,7 +13,12 @@ export default {
     "h-16"
   ],
   theme: {
-    extend: {},
+    extend: {
+      animation: {
+        spinSlow: "spin 2s linear infinite",
+        spinSlower: "spin 3s linear infinite",
+      },
+    },
   },
   plugins: [],
 };
