@@ -8,7 +8,6 @@ export default function Preview() {
   const capturedImg = location.state?.capturedImg;
 
   const [loading, setLoading] = useState(false);
-
   const [showImage, setShowImage] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
 
@@ -21,7 +20,7 @@ export default function Preview() {
     if (!capturedImg) return;
 
     setIsExiting(true);
-    setLoading(true); // mulai loading
+    setLoading(true);
     const startTime = Date.now();
 
     try {
@@ -30,7 +29,7 @@ export default function Preview() {
       formData.append("image", blob, "image.png");
 
       const response = await axios.post(
-        "http://localhost:5000/remove-bg",
+        "https://padupadan-production.up.railway.app/remove-bg",
         formData,
         {
           responseType: "blob",
@@ -42,32 +41,45 @@ export default function Preview() {
       }
 
       const resultBlob = response.data;
-
       const reader = new FileReader();
+
       reader.onloadend = () => {
         const base64Image = reader.result;
+        // const elapsed = Date.now() - startTime;
+        // const delay = Math.max(0, 1500 - elapsed);
 
-        const elapsed = Date.now() - startTime;
-        const delay = Math.max(0, 1000 - elapsed);
+        const img = new Image();
+        img.src = base64Image;
 
-        setTimeout(() => {
-          navigate("/addcloset", { state: { capturedImg: base64Image } });
+        img.onload = () => {
+          const elapsed = Date.now() - startTime;
+          const delay = Math.max(0, 500 - elapsed);
+
+          setTimeout(() => {
+            // ⚠️ JANGAN matikan loading dulu — biarkan dibuka oleh halaman berikut
+            navigate("/addcloset", {
+              state: {
+                capturedImg: base64Image,
+                withLoading: true,
+              },
+            });
+          }, delay);
+        };
+
+        img.onerror = () => {
+          alert("Gagal memuat gambar");
           setLoading(false);
-        }, delay);
+          navigate("/addcloset", { state: { capturedImg } });
+        };
       };
 
       reader.readAsDataURL(resultBlob);
-    } catch (err) {
-      console.error("Gagal hapus background:", err.message);
-      alert("Background tidak bisa dihapus. Gambar tetap disimpan.");
-
-      const elapsed = Date.now() - startTime;
-      const delay = Math.max(0, 1000 - elapsed);
-
+    } catch {
+      alert("Gagal menghapus background. Gambar tetap akan disimpan.");
       setTimeout(() => {
         navigate("/addcloset", { state: { capturedImg } });
         setLoading(false);
-      }, delay);
+      }, 500);
     }
   };
 
@@ -116,10 +128,11 @@ export default function Preview() {
           </button>
         </div>
       </div>
+
       {loading && (
-        <div className="fixed inset-0 bg-white bg-opacity-60 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-white bg-opacity-60 flex flex-col items-center justify-center z-50">
           <div className="w-10 h-10 border-4 border-yellow-400 border-t-transparent rounded-full animate-spinSlow"></div>
-          <p className="mt-4 text-gray-700 font-medium">Memuat</p>
+          <p className="mt-4 text-gray-700 font-medium">Sedang memuat...</p>
         </div>
       )}
     </div>
