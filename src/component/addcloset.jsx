@@ -78,7 +78,7 @@ export default function AddCloset() {
       {/* Sticky Header */}
       <div className="sticky top-0 z-10 bg-white flex items-center justify-between w-full max-w-sm mx-auto px-4 py-3">
         <button
-          onClick={() => navigate("/kamera")}
+          onClick={() => navigate("/upload")}
           className="text-yellow-500 hover:text-yellow-600 text-xl"
         >
           <FaArrowLeft />
@@ -103,14 +103,6 @@ export default function AddCloset() {
         onSubmit={handleSubmit}
         className="w-full max-w-sm mx-auto px-4 pt-6 pb-10 space-y-4"
       >
-        {/* <input
-          type="text"
-          placeholder="Nama pakaian"
-          value={namaItem}
-          onChange={(e) => setNamaItem(e.target.value)}
-          className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-yellow-400"
-          required
-        /> */}
         <select
           value={kategori}
           onChange={(e) => setKategori(e.target.value)}
