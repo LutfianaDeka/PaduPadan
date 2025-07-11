@@ -14,6 +14,7 @@ export default function ContentPage() {
   const [liked, setLiked] = useState([]);
   const [userId, setUserId] = useState(null);
   const [likeCounts, setLikeCounts] = useState([]);
+  const [isAnimating, setIsAnimating] = useState([]);
 
   // Ambil session dan set userId saat pertama kali
   useEffect(() => {
@@ -140,6 +141,26 @@ export default function ContentPage() {
     newLiked[index] = !newLiked[index];
     setLiked(newLiked);
   };
+  useEffect(() => {
+    setIsAnimating(Array(publicStyles.length).fill(false));
+  }, [publicStyles]);
+
+  const handleDoubleClick = (index) => {
+    console.log("Double clicked index:", index);
+
+    if (!liked[index]) {
+      toggleLike(index);
+    }
+
+    const updatedAnim = [...isAnimating];
+    updatedAnim[index] = true;
+    setIsAnimating(updatedAnim);
+
+    setTimeout(() => {
+      updatedAnim[index] = false;
+      setIsAnimating([...updatedAnim]);
+    }, 800);
+  };
 
   return (
     <>
@@ -185,38 +206,59 @@ export default function ContentPage() {
               </div>
 
               {/* Image & Reactions */}
-              <div className="img-post">
+              <div
+                className="img-post"
+                onDoubleClick={() => handleDoubleClick(index)}
+              >
                 <img
                   src={style.gambar}
                   alt={style.style_name}
                   className="w-full aspect-square object-cover"
                 />
-                <div className="react flex gap-6 py-4 text-white px-3">
-                  <button onClick={() => toggleLike(index)}>
+
+                {isAnimating[index] && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
+                      className="w-20 h-20 text-white animate-pop"
                       viewBox="0 0 24 24"
-                      fill={liked[index] ? "red" : "none"}
-                      stroke={liked[index] ? "red" : "white"}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                      fill="red"
+                      stroke="none"
                     >
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                     </svg>
-                  </button>
-                  <p className="text-xs">
-                    {typeof likeCounts[index] === "number"
-                      ? likeCounts[index]
-                      : 0}{" "}
-                    likes
-                  </p>
+                  </div>
+                )}
 
-                  <button>
-                    <MessageSquare />
-                  </button>
+                <div className="react flex gap-4 py-4 text-white px-3">
+                  <div className="like flex items-center gap-1">
+                    <button onClick={() => toggleLike(index)}>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill={liked[index] ? "red" : "none"}
+                        stroke={liked[index] ? "red" : "white"}
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                      </svg>
+                    </button>
+                    <p className="text-xs">
+                      {typeof likeCounts[index] === "number"
+                        ? likeCounts[index]
+                        : 0}{" "}
+                    </p>
+                  </div>
+                  <div className="comment flex items-center gap-1">
+                    <button>
+                      <MessageSquare />
+                    </button>
+                    <p className="text-xs">0</p>
+                  </div>
                 </div>
 
                 {/* Description */}
