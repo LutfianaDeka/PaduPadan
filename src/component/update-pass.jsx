@@ -51,7 +51,7 @@ export default function UpdatePass() {
           <div className="pass relative mt-4">
             {/* Eye Icon Inside Input */}
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Password baru"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}

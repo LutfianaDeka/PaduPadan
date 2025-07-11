@@ -17,7 +17,8 @@ export default function ResetPass() {
     }
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: "http://localhost:5173/update-pass",
+      // redirectTo: "http://localhost:5173/update-pass",
+      redirectTo: "https://m2outfit.vercel.app/update-pass",
     });
 
     if (error) {
