@@ -12,14 +12,31 @@ export default function ContentPage() {
 
   const [publicStyles, setPublicStyles] = useState([]);
   const [liked, setLiked] = useState([]);
+  const [userId, setUserId] = useState(null);
+  const [likeCounts, setLikeCounts] = useState([]);
 
-  // const randomImages = Array.from(
-  //   { length: 20 },
-  //   (_, i) => `https://picsum.photos/seed/${i + 1}/300/300`
-  // );
-
+  // Ambil session dan set userId saat pertama kali
   useEffect(() => {
-    const fetchPublicStyles = async () => {
+    const getUser = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setUserId(session?.user?.id);
+    };
+
+    getUser();
+  }, []);
+
+  // Init session + fetch styles + liked status
+  useEffect(() => {
+    const fetchData = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const currentUserId = session?.user?.id;
+      setUserId(currentUserId);
+
+      // Ambil style public
       const { data, error } = await supabase
         .from("v_style_with_user")
         .select("*")
@@ -28,14 +45,49 @@ export default function ContentPage() {
 
       if (error) {
         console.error("Gagal ambil style:", error.message);
+        return;
+      }
+
+      setPublicStyles(data);
+
+      // Hitung jumlah like untuk setiap style
+      const counts = await Promise.all(
+        data.map(async (style) => {
+          const { count } = await supabase
+            .from("style_like")
+            .select("*", { count: "exact", head: true })
+            .eq("style_id", style.style_id);
+          return count || 0;
+        })
+      );
+      setLikeCounts(counts);
+
+      // Cek apakah user login telah like
+      if (currentUserId) {
+        const likedStatus = await Promise.all(
+          data.map(async (style) => {
+            const { data: likeData } = await supabase
+              .from("style_like")
+              .select("like_id")
+              .eq("style_id", style.style_id)
+              .eq("user_id", currentUserId)
+              .maybeSingle();
+            return !!likeData;
+          })
+        );
+        setLiked(likedStatus);
       } else {
-        setPublicStyles(data);
-        setLiked(Array(data.length).fill(false)); // Init state like
+        setLiked(data.map(() => false)); // guest semua tidak like
       }
     };
 
-    fetchPublicStyles();
-  }, []);
+    fetchData();
+  }, []); // tanpa [userId]
+
+  // const randomImages = Array.from(
+  //   { length: 20 },
+  //   (_, i) => `https://picsum.photos/seed/${i + 1}/300/300`
+  // );
 
   useEffect(() => {
     if (
@@ -48,7 +100,42 @@ export default function ContentPage() {
     }
   }, [scrollToIndex, publicStyles]);
 
-  const toggleLike = (index) => {
+  // Toggle like/unlike
+  const toggleLike = async (index) => {
+    if (!userId) return;
+
+    const style = publicStyles[index];
+    const styleId = style.style_id;
+
+    if (liked[index]) {
+      const { error } = await supabase
+        .from("style_like")
+        .delete()
+        .eq("style_id", styleId)
+        .eq("user_id", userId);
+
+      if (error) {
+        console.error("Gagal unlike:", error.message);
+      } else {
+        const newCounts = [...likeCounts];
+        newCounts[index] -= 1;
+        setLikeCounts(newCounts);
+      }
+    } else {
+      const { error } = await supabase.from("style_like").insert({
+        style_id: styleId,
+        user_id: userId,
+      });
+
+      if (error) {
+        console.error("Gagal insert like:", error.message);
+      } else {
+        const newCounts = [...likeCounts];
+        newCounts[index] += 1;
+        setLikeCounts(newCounts);
+      }
+    }
+
     const newLiked = [...liked];
     newLiked[index] = !newLiked[index];
     setLiked(newLiked);
@@ -120,6 +207,13 @@ export default function ContentPage() {
                       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                     </svg>
                   </button>
+                  <p className="text-xs">
+                    {typeof likeCounts[index] === "number"
+                      ? likeCounts[index]
+                      : 0}{" "}
+                    likes
+                  </p>
+
                   <button>
                     <MessageSquare />
                   </button>

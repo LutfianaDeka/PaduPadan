@@ -6,9 +6,9 @@ import { supabase } from "../lib/supabase";
 
 export default function HomePage() {
   const navigate = useNavigate();
-  // Buat array dummy berisi 10 gambar random
-  const [publicStyles, setPublicStyles] = useState([]);
 
+  const [publicStyles, setPublicStyles] = useState([]);
+  // Buat array dummy berisi 10 gambar random
   // const randomImages = Array.from(
   //   { length: 20 },
   //   (_, i) => `https://picsum.photos/seed/${i + 1}/300/300`
@@ -46,7 +46,6 @@ export default function HomePage() {
             <BellRing />
             <CircleUserRound />
           </div>
-          {/* Garis tepat di bawah navbar */}
         </div>
         <hr className="border-t border-[#FFF313] mx-4" />
 
