@@ -49,13 +49,7 @@ export default function LihatCommentPage({ open, onClose, comments }) {
 
   // touch listener
   const handleTouchStart = (e) => startDrag(e.touches[0].clientY);
-  //   cegah reload halaman
-  const handleTouchMove = (e) => {
-    updateDrag(e.touches[0].clientY);
-    if (isDragging) {
-      e.preventDefault(); // ⚠️ Cegah browser reload
-    }
-  };
+  const handleTouchMove = (e) => updateDrag(e.touches[0].clientY);
   const handleTouchEnd = () => endDrag();
 
   if (!open) return null;
