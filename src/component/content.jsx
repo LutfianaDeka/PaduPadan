@@ -2,6 +2,8 @@ import { ArrowLeft, MessageSquare } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
+import LihatCommentPage from "./lihat_comment";
+import { useLocation } from "react-router-dom";
 
 export default function ContentPage() {
   const navigate = useNavigate();
@@ -15,6 +17,27 @@ export default function ContentPage() {
   const [userId, setUserId] = useState(null);
   const [likeCounts, setLikeCounts] = useState([]);
   const [isAnimating, setIsAnimating] = useState([]);
+
+  const [showComments, setShowComments] = useState(false);
+  const [commentIndex, setCommentIndex] = useState(null);
+  const location = useLocation();
+  // Contoh data komentar
+  const comments = [
+    { username: "lutfiana", text: "Keren banget stylenya!" },
+    {
+      username: "deka12",
+      text: "Inspiratif banget ini 😍, kapan kapan pengin coba style ini dehhh",
+    },
+    { username: "lutfiana", text: "Keren banget stylenya!" },
+    {
+      username: "deka12",
+      text: "Inspiratif banget ini 😍, kapan kapan pengin coba style ini dehhh",
+    },
+  ];
+  // Tutup komentar saat route berubah
+  useEffect(() => {
+    setShowComments(false);
+  }, [location]);
 
   // Ambil session dan set userId saat pertama kali
   useEffect(() => {
@@ -254,13 +277,18 @@ export default function ContentPage() {
                     </p>
                   </div>
                   <div className="comment flex items-center gap-1">
-                    <button>
+                    <button
+                      onClick={() => {
+                        setCommentIndex(index);
+                        setShowComments(true);
+                      }}
+                    >
                       <MessageSquare />
                     </button>
-                    <p className="text-xs">0</p>
+
+                    <p className="text-xs">{comments.length}</p>
                   </div>
                 </div>
-
                 {/* Description */}
                 <div className="desc px-3">
                   <h5 className="text-xs font-bold text-white">
@@ -273,6 +301,16 @@ export default function ContentPage() {
               </div>
             </div>
           ))}
+          {showComments && commentIndex !== null && (
+            <LihatCommentPage
+              open={showComments}
+              onClose={() => {
+                setShowComments(false);
+                setCommentIndex(null);
+              }}
+              comments={comments} // nanti bisa kamu ubah: comments[commentIndex]
+            />
+          )}
         </div>
       </div>
     </>
