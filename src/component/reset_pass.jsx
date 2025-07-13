@@ -11,13 +11,12 @@ export default function ResetPass() {
         icon: "warning",
         title: "Oops!",
         text: "Email tidak boleh kosong!",
-        confirmButtonColor: "#FFF313",
+        confirmButtonColor: "#16a34a",
       });
       return;
     }
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      // redirectTo: "http://localhost:5173/update-pass",
       redirectTo: "https://m2outfit.vercel.app/update-pass",
     });
 
@@ -26,40 +25,43 @@ export default function ResetPass() {
         icon: "error",
         title: "Gagal",
         text: error.message,
-        confirmButtonColor: "#FFF313",
+        confirmButtonColor: "#16a34a",
       });
     } else {
       Swal.fire({
         icon: "success",
         title: "Berhasil!",
         text: "Link reset password telah dikirim ke email kamu.",
-        confirmButtonColor: "#FFF313",
+        confirmButtonColor: "#16a34a",
       });
     }
   };
+
   return (
-    <>
-      <div className="reset min-h-screen overflow-auto bg-black flex flex-col items-center text-center">
-        <h2 className="text-white text-2xl font-bold mt-20">
-          Konfirmasi Email Anda
+    <div className="min-h-screen flex items-center justify-center bg-white px-4">
+      <div className="bg-white border border-green-600 rounded-2xl shadow-xl p-8 w-full max-w-md text-center">
+        <h2 className="text-green-700 text-2xl font-bold mb-4">
+          Reset Password
         </h2>
-        <p className="text-white pt-4 text-sm">
-          Masukkan email yang akan anda gunakan untuk mereset password
+        <p className="text-gray-700 text-sm mb-6">
+          Masukkan email yang kamu gunakan untuk mereset password.
         </p>
+
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="text-[#FFF313] bg-[#198499]/20 border-1 border-[#FFF313] rounded-[10px] pl-4 w-62 py-3 mt-4"
+          className="w-full px-4 py-3 mb-4 rounded-lg bg-white border border-green-500 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
         />
+
         <button
           onClick={handleReset}
-          className="text-black w-62 font-bold  py-3 bg-[#FFF313] rounded-full shadow-lg transition duration-300 ease-in-out transfor hover:bg-[#E1AD01] cursor-pointer mt-10"
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-full shadow-md transition duration-300"
         >
-          KONFIRMASI
+          Kirim Link Reset
         </button>
       </div>
-    </>
+    </div>
   );
 }
