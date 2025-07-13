@@ -10,6 +10,9 @@ export default function Kalender() {
   const [styleEvents, setStyleEvents] = useState([]);
   const [userId, setUserId] = useState(null);
   const navigate = useNavigate();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedDateStyles, setSelectedDateStyles] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(null);
 
   // Ambil session user
   useEffect(() => {
@@ -41,50 +44,124 @@ export default function Kalender() {
   }, [userId]);
 
   const handleDayClick = (date) => {
-    const dateStr = date.toISOString().split("T")[0];
-    const found = styleEvents.find((e) => e.tanggal === dateStr);
-    if (found) {
-      navigate(`/detail_style/${found.style.id}`);
+    const dateStr = date.toLocaleDateString("sv-SE");
+    const matched = styleEvents.filter((e) => e.tanggal === dateStr);
+    if (matched.length === 1) {
+      navigate(`/detail_style/${matched[0].style.id}`);
+    } else if (matched.length > 1) {
+      setSelectedDate(dateStr);
+      setSelectedDateStyles(matched);
+      setModalOpen(true);
     }
   };
 
   const tileContent = ({ date, view }) => {
     if (view !== "month") return null;
-    const dstr = date.toISOString().split("T")[0];
-    const matched = styleEvents.filter((e) => e.tanggal === dstr);
-    if (!matched.length) return null;
+    const tanggal = date.toLocaleDateString("sv-SE");
+    const matched = styleEvents.filter((e) => e.tanggal === tanggal);
+    const maxPreview = 2;
 
+    
     return (
-      <div className="flex justify-center flex-wrap gap-[2px] mt-1">
-        {matched.map((e, i) => (
+      <div className="relative h-[50px] w-full flex flex-wrap gap-1 justify-center items-center p-1">
+        {matched.slice(0, maxPreview).map((e, i) => (
           <img
-            key={`${e.style.id}-${i}`}
+            key={i}
             src={e.style.gambar}
             alt={e.style.nama_style}
-            className="w-9 h-12 object-cover rounded-md shadow"
+            className="w-8 h-8 rounded object-cover shadow"
           />
         ))}
+        {matched.length > maxPreview && (
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedDateStyles(matched);
+              setModalOpen(true);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.stopPropagation();
+                setSelectedDateStyles(matched);
+                setModalOpen(true);
+              }
+            }}
+            className="absolute bottom-1 right-1 bg-black text-white text-xs px-1 rounded cursor-pointer"
+          >
+            +{matched.length - maxPreview}
+          </div>
+        )}
       </div>
     );
   };
-
   return (
-    <div className="min-h-screen p-4 bg-black">
-      <h2 className="text-center text-xl text-[#FFF313] font-bold mb-4">
-        Kalender Outfit
-      </h2>
+    <>
+      {/* MODAL */}
+      {modalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg max-w-md w-full p-4 shadow-xl relative">
+            {/* TANGGAL */}
+            <h3 className="text-center font-bold text-lg mb-2 text-black">
+              Outfit{" "}
+              {selectedDate &&
+                new Date(selectedDate).toLocaleDateString("id-ID", {
+                  weekday: "long",
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+            </h3>
 
-      <Calendar
-        className="rounded"
-        onChange={setValue}
-        value={value}
-        onClickDay={handleDayClick}
-        tileContent={tileContent}
-        prev2Label={null}
-        next2Label={null}
-      />
+            {/* OUTFIT LIST */}
+            <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto">
+              {selectedDateStyles.map((e, i) => (
+                <div
+                  key={i}
+                  className="w-full aspect-square bg-white rounded shadow cursor-pointer hover:brightness-90 transition flex flex-col items-center justify-center"
+                  onClick={() => {
+                    navigate(`/detail_style/${e.style.id}`);
+                    setModalOpen(false);
+                  }}
+                >
+                  <img
+                    src={e.style.gambar || "/placeholder.png"}
+                    alt={e.style.nama_style || "Outfit"}
+                    className="max-w-full max-h-[80%] object-contain p-2"
+                  />
+                  <p className="text-sm text-center text-black mt-1 truncate w-full px-1">
+                    {e.style.nama_style}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => setModalOpen(false)}
+              className="mt-4 w-full py-2 bg-black text-white rounded hover:bg-gray-800"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
 
-      <BottomMenu />
-    </div>
+      <div className="min-h-screen p-4 bg-black">
+        <h2 className="text-center text-xl text-[#FFF313] font-bold mb-4">
+          Kalender Outfit
+        </h2>
+
+        <Calendar
+          className="w-full max-w-4xl mx-auto rounded bg-white p-2 shadow"
+          onChange={setValue}
+          value={value}
+          onClickDay={handleDayClick}
+          tileContent={tileContent}
+          prev2Label={null}
+          next2Label={null}
+        />
+        <BottomMenu />
+      </div>
+    </>
   );
 }
