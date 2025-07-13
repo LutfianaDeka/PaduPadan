@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ScrollToTop from "./supporting/ScrollToTop";
 import LoginPage from "./component/login";
 import WelcomePage from "./component/welcome";
-import RegistrasiPage from "./component/registrasi";
+import SignUpPage from "./component/sign-up";
 import HomePage from "./component/home";
 import ContentPage from "./component/content";
 import ResetPass from "./component/reset_pass";
@@ -27,7 +27,7 @@ function App() {
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<WelcomePage />} />
-          <Route path="/registrasi" element={<RegistrasiPage />} />
+          <Route path="/signup" element={<SignUpPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/content" element={<ContentPage />} />

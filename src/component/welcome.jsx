@@ -1,53 +1,75 @@
+// src/pages/WelcomePage.jsx
+
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-export default function WelcomPage() {
+
+const slides = [
+  
+  { url: "/slide-1.jpg"},
+  { url: "/slide-2.jpg"},
+  { url: "/slide-3.jpg"}
+  
+];
+
+
+export default function WelcomePage() {
+  const [currentSlide, setCurrentSlide] = useState(0);
   const navigate = useNavigate();
 
-  const loginHandle = () => {
-    navigate("/login");
-    setTimeout(() => {
-      const el = document.getElementById("login");
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth" });
-      }
-    }, 100);
-  };
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 5000); // slide ganti setiap 5 detik
+    return () => clearInterval(interval);
+  }, []);
 
-  const registerHandle = () => {
-    navigate("/registrasi");
-    setTimeout(() => {
-      const el = document.getElementById("registrasi");
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth" });
-      }
-    }, 100);
-  };
   return (
-    <>
-      <div className="welcome bg-black h-screen flex flex-col justify-between items-center text-center">
-        <div className="wel-text mt-40">
-          <h1
-            className="text-[#FFF313] text-3xl"
-            style={{ fontFamily: "Redressed" }}
-          >
-            Welcome to M2Outfit
-          </h1>
-          <h2 className="text-white pt-2">Wear Your Style. Share Your Look.</h2>
+    <div className="flex min-h-screen font-sans text-gray-900">
+      {/* Kiri - Slideshow */}
+      <div className="w-1/2 relative ">
+        <img
+          src={slides[currentSlide].url}
+          alt={`Slide ${currentSlide + 1}`}
+          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
+        />
+        <div className="absolute inset-0 flex flex-col justify-center items-center text-white p-8 text-center">
+          {/* <p className="text-lg max-w-md">{slides[currentSlide].caption}</p> */}
+          <div className="absolute top-4 left-6 flex gap-2 z-10">
+  {slides.map((_, index) => (
+    <span
+      key={index}
+      className={`h-1 transition-all duration-300 ${
+        currentSlide === index ? "w-6 bg-white" : "w-3 bg-gray-400"
+      }`}
+    />
+  ))}
+</div>
+
         </div>
-        <div className="btn grid gap-6 mb-26">
+      </div>
+
+      {/* Kanan - Tombol Navigasi */}
+      <div className="w-1/2 bg-white flex flex-col justify-center items-center p-12">
+              <img src="/logo.png" alt="PaduPadan Logo" className="w-24 mb-6" />
+        <h2 className="text-3xl font-semibold mb-6">Selamat Datang di PaduPadan</h2>
+        <p className="text-gray-600 mb-8 max-w-sm text-center">
+          Padupadankan pakaianmu dan ekspresikan gaya personalmu!
+        </p>
+        <div className="space-y-4 w-full max-w-xs">
           <button
-            onClick={loginHandle}
-            className="text-black w-62 font-bold py-3 bg-[#FFF313] rounded-full shadow-lg transition duration-300 ease-in-out transfor hover:bg-[#E1AD01] cursor-pointer"
+            onClick={() => navigate("/login")}
+            className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg transition"
           >
-            LOGIN
+            Masuk
           </button>
           <button
-            onClick={registerHandle}
-            className="text-[#FFF313] w-62 font-bold px-20 py-3 bg-[#198499]/20 rounded-full shadow-lg border border-[#FFF313] transition duration-300 ease-in-out transform hover:bg-[#E1AD01] hover:text-black  cursor-pointer"
+            onClick={() => navigate("/sign-up")}
+            className="w-full border border-green-600 text-green-600 hover:bg-green-50 py-2 rounded-lg transition"
           >
-            REGISTER
+            Daftar
           </button>
         </div>
       </div>
-    </>
+    </div>
   );
 }

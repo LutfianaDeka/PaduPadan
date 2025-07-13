@@ -21,19 +21,28 @@ export default function ContentPage() {
   const [showComments, setShowComments] = useState(false);
   const [commentIndex, setCommentIndex] = useState(null);
   const location = useLocation();
-  // Contoh data komentar
-  const comments = [
-    { username: "lutfiana", text: "Keren banget stylenya!" },
-    {
-      username: "deka12",
-      text: "Inspiratif banget ini 😍, kapan kapan pengin coba style ini dehhh",
-    },
-    { username: "lutfiana", text: "Keren banget stylenya!" },
-    {
-      username: "deka12",
-      text: "Inspiratif banget ini 😍, kapan kapan pengin coba style ini dehhh",
-    },
-  ];
+  // data komentar
+  const [comments, setComments] = useState([]);
+
+  const fetchComments = async (styleId) => {
+    const { data, error } = await supabase
+      .from("style_comment")
+      .select("comment, created_at, user:users(username)") // join user
+      .eq("style_id", styleId)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("Gagal ambil komentar:", error.message);
+    } else {
+      setComments(
+        data.map((c) => ({
+          username: c.user?.username || "Anonim",
+          text: c.comment,
+        }))
+      );
+    }
+  };
+
   // Tutup komentar saat route berubah
   useEffect(() => {
     setShowComments(false);
@@ -281,6 +290,7 @@ export default function ContentPage() {
                       onClick={() => {
                         setCommentIndex(index);
                         setShowComments(true);
+                        fetchComments(publicStyles[index].style_id);
                       }}
                     >
                       <MessageSquare />
@@ -308,7 +318,11 @@ export default function ContentPage() {
                 setShowComments(false);
                 setCommentIndex(null);
               }}
-              comments={comments} // nanti bisa kamu ubah: comments[commentIndex]
+              styleId={publicStyles[commentIndex].style_id}
+              comments={comments}
+              onNewComment={() =>
+                fetchComments(publicStyles[commentIndex].style_id)
+              }
             />
           )}
         </div>
