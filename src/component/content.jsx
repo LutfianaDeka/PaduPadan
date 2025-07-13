@@ -23,6 +23,7 @@ export default function ContentPage() {
   const location = useLocation();
   // data komentar
   const [comments, setComments] = useState([]);
+  const [commentCounts, setCommentCounts] = useState([]);
 
   const fetchComments = async (styleId) => {
     const { data, error } = await supabase
@@ -62,60 +63,73 @@ export default function ContentPage() {
 
   // Init session + fetch styles + liked status
   useEffect(() => {
-    const fetchData = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      const currentUserId = session?.user?.id;
-      setUserId(currentUserId);
+  const fetchData = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const currentUserId = session?.user?.id;
+    setUserId(currentUserId);
 
-      // Ambil style public
-      const { data, error } = await supabase
-        .from("v_style_with_user")
-        .select("*")
-        .eq("status", "public")
-        .order("created_at", { ascending: false });
+    // Ambil style public
+    const { data, error } = await supabase
+      .from("v_style_with_user")
+      .select("*")
+      .eq("status", "public")
+      .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Gagal ambil style:", error.message);
-        return;
-      }
+    if (error) {
+      console.error("Gagal ambil style:", error.message);
+      return;
+    }
 
-      setPublicStyles(data);
+    setPublicStyles(data);
 
-      // Hitung jumlah like untuk setiap style
-      const counts = await Promise.all(
+    // Hitung jumlah like untuk setiap style
+    const counts = await Promise.all(
+      data.map(async (style) => {
+        const { count } = await supabase
+          .from("style_like")
+          .select("*", { count: "exact", head: true })
+          .eq("style_id", style.style_id);
+        return count || 0;
+      })
+    );
+    setLikeCounts(counts);
+
+    // Hitung jumlah komentar untuk setiap style
+    const commentCounts = await Promise.all(
+      data.map(async (style) => {
+        const { count } = await supabase
+          .from("style_comment")
+          .select("*", { count: "exact", head: true })
+          .eq("style_id", style.style_id);
+        return count || 0;
+      })
+    );
+    setCommentCounts(commentCounts);
+
+    // Cek apakah user login telah like
+    if (currentUserId) {
+      const likedStatus = await Promise.all(
         data.map(async (style) => {
-          const { count } = await supabase
+          const { data: likeData } = await supabase
             .from("style_like")
-            .select("*", { count: "exact", head: true })
-            .eq("style_id", style.style_id);
-          return count || 0;
+            .select("like_id")
+            .eq("style_id", style.style_id)
+            .eq("user_id", currentUserId)
+            .maybeSingle();
+          return !!likeData;
         })
       );
-      setLikeCounts(counts);
+      setLiked(likedStatus);
+    } else {
+      setLiked(data.map(() => false)); // guest semua tidak like
+    }
+  };
 
-      // Cek apakah user login telah like
-      if (currentUserId) {
-        const likedStatus = await Promise.all(
-          data.map(async (style) => {
-            const { data: likeData } = await supabase
-              .from("style_like")
-              .select("like_id")
-              .eq("style_id", style.style_id)
-              .eq("user_id", currentUserId)
-              .maybeSingle();
-            return !!likeData;
-          })
-        );
-        setLiked(likedStatus);
-      } else {
-        setLiked(data.map(() => false)); // guest semua tidak like
-      }
-    };
+  fetchData(); // panggil fungsi async
+}, []);
 
-    fetchData();
-  }, []); // tanpa [userId]
 
   // const randomImages = Array.from(
   //   { length: 20 },
@@ -296,7 +310,10 @@ export default function ContentPage() {
                       <MessageSquare />
                     </button>
 
-                    <p className="text-xs">{comments.length}</p>
+                  <p className="text-xs">
+  {typeof commentCounts[index] === "number" ? commentCounts[index] : 0}
+</p>
+
                   </div>
                 </div>
                 {/* Description */}
