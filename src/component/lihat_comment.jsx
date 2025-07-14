@@ -149,7 +149,7 @@ export default function LihatCommentPage({ open, onClose, styleId }) {
           <style>{`div::-webkit-scrollbar { display: none; }`}</style>
           <div className="space-y-3 pt-2 pb-4">
             {localComments.length === 0 ? (
-              <p className="text-gray-500 mt-4">Belum ada komentar.</p>
+              <p className="text-gray-500 mt-4 text-xs">Belum ada komentar.</p>
             ) : (
               localComments.map((comment, idx) => (
                 <div key={idx} className="flex items-start gap-3">
