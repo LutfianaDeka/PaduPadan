@@ -1,9 +1,8 @@
 import { ArrowLeft, MessageSquare } from "lucide-react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import LihatCommentPage from "./lihat_comment";
-import { useLocation } from "react-router-dom";
 
 export default function ContentPage() {
   const navigate = useNavigate();
@@ -11,17 +10,41 @@ export default function ContentPage() {
   const scrollToIndex = parseInt(searchParams.get("scrollTo"), 10);
   const postRefs = useRef([]);
   const scrollContainerRef = useRef(null);
+  const location = useLocation();
 
   const [publicStyles, setPublicStyles] = useState([]);
   const [liked, setLiked] = useState([]);
   const [userId, setUserId] = useState(null);
   const [likeCounts, setLikeCounts] = useState([]);
+  const [commentCounts, setCommentCounts] = useState([]);
   const [isAnimating, setIsAnimating] = useState([]);
-
   const [showComments, setShowComments] = useState(false);
   const [commentIndex, setCommentIndex] = useState(null);
-  const location = useLocation();
-  const [commentCounts, setCommentCounts] = useState([]);
+
+  useEffect(() => {
+    if (!isNaN(scrollToIndex) && postRefs.current[scrollToIndex]) {
+      const offset = postRefs.current[scrollToIndex].offsetTop;
+      scrollContainerRef.current.scrollTop = offset;
+    }
+  }, [scrollToIndex, publicStyles]);
+
+  useEffect(() => {
+    setShowComments(false);
+  }, [location]);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setUserId(session?.user?.id);
+    };
+    getUser();
+  }, []);
+
+  useEffect(() => {
+    fetchStyles();
+  }, []);
 
   const fetchStyles = async () => {
     const {
@@ -36,15 +59,16 @@ export default function ContentPage() {
       .eq("status", "public")
       .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Gagal ambil style:", error.message);
-      return;
-    }
+    if (error) return console.error("Error ambil style:", error.message);
 
     setPublicStyles(data);
+    fetchCounts(data);
+    checkLiked(data, currentUserId);
+  };
 
+  const fetchCounts = async (styles) => {
     const likeResults = await Promise.all(
-      data.map(async (style) => {
+      styles.map(async (style) => {
         const { count } = await supabase
           .from("style_like")
           .select("*", { count: "exact", head: true })
@@ -55,7 +79,7 @@ export default function ContentPage() {
     setLikeCounts(likeResults);
 
     const commentResults = await Promise.all(
-      data.map(async (style) => {
+      styles.map(async (style) => {
         const { count } = await supabase
           .from("style_comment")
           .select("*", { count: "exact", head: true })
@@ -64,71 +88,27 @@ export default function ContentPage() {
       })
     );
     setCommentCounts(commentResults);
-
-    if (currentUserId) {
-      const likedStatus = await Promise.all(
-        data.map(async (style) => {
-          const { data: likeData } = await supabase
-            .from("style_like")
-            .select("like_id")
-            .eq("style_id", style.style_id)
-            .eq("user_id", currentUserId)
-            .maybeSingle();
-          return !!likeData;
-        })
-      );
-      setLiked(likedStatus);
-    } else {
-      setLiked(data.map(() => false));
-    }
   };
 
-  useEffect(() => {
-    fetchStyles();
-  }, []);
-
-  // Realtime update for likes and comments
-  useEffect(() => {
-    const likeSub = supabase
-      .channel("realtime-likes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "style_like" },
-        () => fetchStyles()
-      )
-      .subscribe();
-
-    const commentSub = supabase
-      .channel("realtime-comments")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "style_comment" },
-        () => fetchStyles()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(likeSub);
-      supabase.removeChannel(commentSub);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (
-      !isNaN(scrollToIndex) &&
-      postRefs.current[scrollToIndex] &&
-      scrollContainerRef.current
-    ) {
-      const targetOffset = postRefs.current[scrollToIndex].offsetTop;
-      scrollContainerRef.current.scrollTop = targetOffset;
-    }
-  }, [scrollToIndex, publicStyles]);
+  const checkLiked = async (styles, userId) => {
+    if (!userId) return setLiked(styles.map(() => false));
+    const likedStatus = await Promise.all(
+      styles.map(async (style) => {
+        const { data: likeData } = await supabase
+          .from("style_like")
+          .select("like_id")
+          .eq("style_id", style.style_id)
+          .eq("user_id", userId)
+          .maybeSingle();
+        return !!likeData;
+      })
+    );
+    setLiked(likedStatus);
+  };
 
   const toggleLike = async (index) => {
     if (!userId) return;
-
-    const style = publicStyles[index];
-    const styleId = style.style_id;
+    const styleId = publicStyles[index].style_id;
 
     if (liked[index]) {
       await supabase
@@ -142,6 +122,11 @@ export default function ContentPage() {
         user_id: userId,
       });
     }
+
+    // Perbarui ulang jumlah like dan status
+    const newStyles = [...publicStyles];
+    fetchCounts(newStyles);
+    checkLiked(newStyles, userId);
   };
 
   useEffect(() => {
@@ -149,17 +134,14 @@ export default function ContentPage() {
   }, [publicStyles]);
 
   const handleDoubleClick = (index) => {
-    if (!liked[index]) {
-      toggleLike(index);
-    }
+    if (!liked[index]) toggleLike(index);
 
-    const updatedAnim = [...isAnimating];
-    updatedAnim[index] = true;
-    setIsAnimating(updatedAnim);
-
+    const updated = [...isAnimating];
+    updated[index] = true;
+    setIsAnimating(updated);
     setTimeout(() => {
-      updatedAnim[index] = false;
-      setIsAnimating([...updatedAnim]);
+      updated[index] = false;
+      setIsAnimating([...updated]);
     }, 800);
   };
 
@@ -168,7 +150,7 @@ export default function ContentPage() {
       <div className="nav h-14 flex px-4 items-center justify-center">
         <div
           className="ikon absolute left-4 text-[#FFF313]"
-          onClick={() => navigate(`/home`)}
+          onClick={() => navigate("/home")}
         >
           <ArrowLeft />
         </div>
@@ -257,6 +239,7 @@ export default function ContentPage() {
                   <p className="text-xs">{commentCounts[index] || 0}</p>
                 </div>
               </div>
+
               <div className="desc px-3">
                 <h5 className="text-xs font-bold text-white">
                   {style.style_name}
@@ -268,13 +251,13 @@ export default function ContentPage() {
             </div>
           </div>
         ))}
-
         {showComments && commentIndex !== null && (
           <LihatCommentPage
             open={showComments}
             onClose={() => {
               setShowComments(false);
               setCommentIndex(null);
+              fetchStyles(); // refresh jumlah komentar setelah menutup
             }}
             styleId={publicStyles[commentIndex]?.style_id}
           />
