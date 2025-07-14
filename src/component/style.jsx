@@ -117,34 +117,33 @@ export default function StylePage() {
   return (
     <div className="style-body pt-6">
       <div className="flex justify-between px-6">
+        {/* Button Hapus Style */}
+        <button
+          className="p-2"
+          onClick={handleBulkDelete}
+          title="Hapus style terpilih"
+          disabled={selectedStyles.length === 0}
+        >
+          <Trash2
+            className={`transition ${
+              selectedStyles.length === 0 ? "text-red-500" : "text-red-600"
+            }`}
+          />
+        </button>
+
+        {/* Badge jumlah hanya jika ada yang dipilih */}
+        {selectedStyles.length > 0 && (
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+            {selectedStyles.length}
+          </span>
+        )}
+        {/* Button Tambah Style */}
         <button
           className="text-[#FFF313]"
           onClick={() => navigate("/addstyle")} // navigasi ke halaman tambah style
         >
           <CirclePlus size={28} />
         </button>
-        {/* Tombol hapus selalu tampil */}
-        <div className="relative">
-          <button
-            className="p-2"
-            onClick={handleBulkDelete}
-            title="Hapus style terpilih"
-            disabled={selectedStyles.length === 0}
-          >
-            <Trash2
-              className={`transition ${
-                selectedStyles.length === 0 ? "text-red-500" : "text-red-600"
-              }`}
-            />
-          </button>
-
-          {/* Badge jumlah hanya jika ada yang dipilih */}
-          {selectedStyles.length > 0 && (
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              {selectedStyles.length}
-            </span>
-          )}
-        </div>
       </div>
 
       <div className="style-img grid grid-cols-2 gap-4 px-4 pt-6">
