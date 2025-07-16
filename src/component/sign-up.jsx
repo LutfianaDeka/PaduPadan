@@ -4,11 +4,10 @@ import Swal from "sweetalert2";
 import { useState } from "react";
 import { supabase } from "../lib/supabase.jsx";
 
-export default function RegistrasiPage() {
+export default function SignUpPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
 
-  // Form states
   const [nama, setNama] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -40,7 +39,7 @@ export default function RegistrasiPage() {
           username,
           email,
           full_name: nama,
-          profile_picture: "", // Kosong dulu
+          profile_picture: "",
         },
       ]);
     }
@@ -57,6 +56,9 @@ export default function RegistrasiPage() {
   const handleRegisterWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
+      options: {
+        redirectTo: window.location.origin + "/home",
+      },
     });
 
     if (error) {
@@ -136,11 +138,7 @@ export default function RegistrasiPage() {
             onClick={handleRegisterWithGoogle}
             className="w-full border border-gray-300 py-3 rounded-lg flex justify-center items-center gap-2 hover:shadow-md transition"
           >
-            <img
-              src="google.png"
-              alt="Google"
-              className="w-5 h-5"
-            />
+            <img src="google.png" alt="Google" className="w-5 h-5" />
             <span className="text-sm text-gray-700">Daftar dengan Google</span>
           </button>
 

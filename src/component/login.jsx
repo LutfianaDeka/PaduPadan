@@ -52,17 +52,12 @@ export default function LoginPage() {
     }
   };
 
-  const handleResetPassword = () => {
-    navigate("/reset");
-  };
-
-  const goToRegister = () => {
-    navigate("/signup");
-  };
-
   const loginWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
+      options: {
+        redirectTo: window.location.origin + "/home",
+      },
     });
 
     if (error) {
@@ -109,13 +104,6 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <p
-            onClick={handleResetPassword}
-            className="text-sm text-right text-green-600 hover:underline cursor-pointer"
-          >
-            Lupa password?
-          </p>
-
           <button
             onClick={handleLogin}
             className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition"
@@ -136,16 +124,6 @@ export default function LoginPage() {
             <img src="/google.png" alt="Google" className="w-5 h-5" />
             <span className="text-sm text-gray-700">Lanjutkan dengan Google</span>
           </button>
-
-          <p className="text-center text-sm text-gray-600">
-            Belum punya akun?{" "}
-            <span
-              onClick={goToRegister}
-              className="text-green-600 font-medium cursor-pointer hover:underline"
-            >
-              Daftar sekarang
-            </span>
-          </p>
         </div>
       </div>
     </div>

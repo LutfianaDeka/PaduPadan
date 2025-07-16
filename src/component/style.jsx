@@ -117,12 +117,13 @@ export default function StylePage() {
   return (
     <div className="style-body pt-6">
       <div className="flex justify-between px-6">
-        <button
-          className="text-[#FFF313]"
-          onClick={() => navigate("/addstyle")} // navigasi ke halaman tambah style
-        >
-          <CirclePlus size={28} />
-        </button>
+      <button
+  onClick={() => navigate("/addstyle")}
+  className="text-[#FFF313] text-white bg-green-700 hover:bg-green-800 rounded-full p-2 transition duration-200 shadow"
+  title="Tambah Style"
+>
+  <CirclePlus size={24} />
+</button>
         {/* Tombol hapus selalu tampil */}
         <div className="relative">
           <button

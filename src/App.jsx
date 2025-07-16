@@ -19,8 +19,12 @@ import AddStyle from "./component/addstyle";
 import StylePage from "./component/style";
 import FormStyle from "./component/formstyle";
 import DetailStylePage from "./component/detail_style";
+import useCreateUserProfile from "./hooks/useCreateUserProfile";
 
 function App() {
+
+  useCreateUserProfile();
+
   return (
     <div>
       <Router>

@@ -51,7 +51,6 @@ export default function ClosetItemPage() {
     fetchItems();
   }, [userId]);
 
-  // Handler untuk memilih/deselect item
   const toggleSelect = (id_item) => {
     setSelectedItems((prev) =>
       prev.includes(id_item)
@@ -60,7 +59,6 @@ export default function ClosetItemPage() {
     );
   };
 
-  // Hapus item yang dipilih
   const handleDeleteSelected = async () => {
     if (selectedItems.length === 0) {
       alert("Pilih item yang ingin dihapus.");
@@ -83,27 +81,26 @@ export default function ClosetItemPage() {
     }
   };
 
-  // Filter item berdasarkan kategori
   const filteredItems = items.filter(
     (item) => item.kategori.toLowerCase() === selectedKategori.toLowerCase()
   );
 
   return (
-    <div className="Closet-item px-4 pt-6">
-      <div className="flex items-center justify-center gap-4">
+    <div className="Closet-item px-4 pt-6 bg-[#f7f9f8] text-gray-800 min-h-[calc(100vh-100px)]">
+      <div className="flex flex-wrap justify-center items-center gap-4">
         {/* Filter Kategori */}
-        <div className="flex space-x-2">
+        <div className="flex flex-wrap gap-2">
           {kategoriList.map((kategori) => (
             <button
               key={kategori}
               onClick={() => {
                 setSelectedKategori(kategori);
-                setSelectedItems([]); // Reset saat ganti kategori
+                setSelectedItems([]);
               }}
-              className={`px-4 py-1 rounded-full text-sm font-medium border transition-all duration-200 ${
+              className={`px-4 py-1 rounded-full text-sm font-semibold transition-all duration-200 border ${
                 selectedKategori === kategori
-                  ? "bg-[#FFF313] text-black"
-                  : "border-[#FFF313] text-white"
+                  ? "bg-green-600 text-white border-green-600 shadow"
+                  : "bg-white text-green-700 border-green-400 hover:bg-green-100"
               }`}
             >
               {kategori}
@@ -111,18 +108,22 @@ export default function ClosetItemPage() {
           ))}
         </div>
 
-        {/* Trash Icon dengan Badge */}
+        {/* Tombol Hapus */}
         <div className="relative">
           <button
             onClick={handleDeleteSelected}
-            className="text-red-500 hover:text-red-600"
+            className={`p-2 rounded-full transition ${
+              selectedItems.length > 0
+                ? "text-red-600 hover:text-red-700"
+                : "text-gray-300 cursor-not-allowed"
+            }`}
             disabled={selectedItems.length === 0}
             title="Hapus item terpilih"
           >
-            <Trash2 />
+            <Trash2 size={20} />
           </button>
           {selectedItems.length > 0 && (
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full">
+            <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full">
               {selectedItems.length}
             </span>
           )}
@@ -134,15 +135,15 @@ export default function ClosetItemPage() {
         {filteredItems.length === 0 ? (
           <p className="text-center text-gray-400">Belum ada item.</p>
         ) : (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {filteredItems.map((item) => (
               <div
                 key={item.id_item}
                 onClick={() => toggleSelect(item.id_item)}
-                className={`aspect-[3/4] bg-gray-100 rounded-xl overflow-hidden cursor-pointer border-2 transition ${
+                className={`aspect-[3/4] bg-white rounded-xl overflow-hidden cursor-pointer border-2 transition ${
                   selectedItems.includes(item.id_item)
                     ? "border-yellow-400"
-                    : "border-transparent"
+                    : "border-transparent hover:border-green-200"
                 }`}
               >
                 <img
