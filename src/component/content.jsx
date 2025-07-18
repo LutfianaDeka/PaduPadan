@@ -165,7 +165,7 @@ export default function ContentPage() {
 
       <div
         ref={scrollContainerRef}
-        className="post flex flex-col gap-4 overflow-y-auto h-[calc(100vh-56px-1px)] snap-y snap-mandatory"
+        className="post flex flex-col gap-4 overflow-y-auto h-[calc(100vh-56px-1px)] snap-y snap-mandatory w-screen-lg mx-auto"
       >
         {publicStyles.map((style, index) => (
           <div

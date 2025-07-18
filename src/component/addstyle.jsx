@@ -60,26 +60,40 @@ export default function SwipeDrawerPage() {
     }
   };
 
+  const handleCapture = async () => {
+    const canvasElement = canvasRef.current;
+    if (!canvasElement) return;
+
+    // Sembunyikan border dan tombol X sebelum screenshot
+    canvasElement.classList.add("capture-mode");
+
+    const canvasImage = await html2canvas(canvasElement, {
+      backgroundColor: null,
+    });
+    const dataUrl = canvasImage.toDataURL("image/png");
+
+    // Kembalikan tampilan
+    canvasElement.classList.remove("capture-mode");
+
+    navigate("/preview_style", { state: { capturedImg: dataUrl } });
+  };
+
   return (
     <div className="absolute top-0 left-0 right-0 z-50">
+      {/* Header */}
       <div className="bg-[#1a1a1a] flex justify-between items-center p-4">
         <button onClick={() => navigate("/closet")} className="text-[#FFF313]">
           <ArrowLeft size={24} />
         </button>
         <button
-          onClick={async () => {
-            const canvasElement = canvasRef.current;
-            if (!canvasElement) return;
-            const canvasImage = await html2canvas(canvasElement);
-            const dataUrl = canvasImage.toDataURL("image/png");
-            navigate("/preview_style", { state: { capturedImg: dataUrl } });
-          }}
+          onClick={handleCapture}
           className="bg-[#FFF313] px-6 py-2 rounded-full text-black"
         >
           Lanjut
         </button>
       </div>
 
+      {/* Canvas */}
       <div className="px-4 pt-16 pb-32 h-full flex flex-col justify-center">
         <div
           ref={canvasRef}
@@ -115,6 +129,7 @@ export default function SwipeDrawerPage() {
         </div>
       </div>
 
+      {/* Drawer */}
       <div
         className={`fixed bottom-0 left-0 right-0 bg-[#1a1a1a] rounded-t-2xl z-50 transition-transform duration-300 ease-in-out ${
           drawerOpen ? "translate-y-0" : "translate-y-[75%]"
@@ -158,6 +173,15 @@ export default function SwipeDrawerPage() {
           </div>
         </div>
       </div>
+
+      {/* Tambahkan style untuk mode capture */}
+      <style>{`
+        .capture-mode * {
+          border: none !important;
+          box-shadow: none !important;
+          outline: none !important;
+        }
+      `}</style>
     </div>
   );
 }
