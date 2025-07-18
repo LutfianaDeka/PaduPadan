@@ -146,26 +146,26 @@ export default function ContentPage() {
   };
 
   return (
-    <div className="konten bg-black min-h-screen flex flex-col">
+    <div className="konten bg-white min-h-screen flex flex-col">
       <div className="nav h-14 flex px-4 items-center justify-center">
         <div
-          className="ikon absolute left-4 text-[#FFF313]"
+          className="ikon absolute left-4 text-gray-800"
           onClick={() => navigate("/home")}
         >
           <ArrowLeft />
         </div>
         <h1
-          className="text-[#FFF313] text-xl font-bold"
+          className="text-green-700 text-xl md:text-2xl font-bold tracking-wide"
           style={{ fontFamily: "Redressed" }}
         >
-          M2Outfit
+          PaduPadan
         </h1>
       </div>
-      <hr className="border-t border-[#FFF313] mx-4" />
+      <hr className="border-t border-gray-600/80 mx-4" />
 
       <div
         ref={scrollContainerRef}
-        className="post flex flex-col gap-4 overflow-y-auto h-[calc(100vh-56px-1px)] snap-y snap-mandatory"
+        className="post flex flex-col gap-4 overflow-y-auto h-[calc(100vh-56px-1px)] snap-y snap-mandatory w-screen-lg mx-auto"
       >
         {publicStyles.map((style, index) => (
           <div
@@ -179,7 +179,7 @@ export default function ContentPage() {
                 alt="user"
                 className="w-10 h-10 rounded-full object-cover"
               />
-              <p className="text-xs text-white font-bold">
+              <p className="text-xs text-black font-bold">
                 {style.username || "Anonim"}
               </p>
             </div>
@@ -191,7 +191,7 @@ export default function ContentPage() {
               <img
                 src={style.gambar}
                 alt={style.style_name}
-                className="w-full aspect-square object-cover"
+                className="w-full aspect-square bg-white object-contain border-1 border-gray-200"
               />
 
               {isAnimating[index] && (
@@ -208,7 +208,7 @@ export default function ContentPage() {
                 </div>
               )}
 
-              <div className="react flex gap-4 py-4 text-white px-3">
+              <div className="react flex gap-4 py-4 text-black px-3">
                 <div className="like flex items-center gap-1">
                   <button onClick={() => toggleLike(index)}>
                     <svg
@@ -217,7 +217,7 @@ export default function ContentPage() {
                       height="24"
                       viewBox="0 0 24 24"
                       fill={liked[index] ? "red" : "none"}
-                      stroke={liked[index] ? "red" : "white"}
+                      stroke={liked[index] ? "red" : "black"}
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -241,10 +241,10 @@ export default function ContentPage() {
               </div>
 
               <div className="desc px-3">
-                <h5 className="text-xs font-bold text-white">
+                <h5 className="text-xs font-bold text-black">
                   {style.style_name}
                 </h5>
-                <p className="text-white text-xs">
+                <p className="text-black text-xs">
                   {`"${style.style_name}" oleh ${style.username || "user"}`}
                 </p>
               </div>

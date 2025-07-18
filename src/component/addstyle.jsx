@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
-import domtoimage from "dom-to-image-more";
+import domtoimage from "dom-to-image-more"; // ✅ Ganti html2canvas
 
 export default function SwipeDrawerPage() {
   const [selectedItems] = useState([]);
@@ -11,12 +11,9 @@ export default function SwipeDrawerPage() {
   const [userId, setUserId] = useState(null);
   const [canvasItems, setCanvasItems] = useState([]);
   const [draggingId, setDraggingId] = useState(null);
-  const [resizingId, setResizingId] = useState(null);
   const [loading, setLoading] = useState(false);
-
   const dragOffset = useRef({ x: 0, y: 0 });
-  const initialSize = useRef({ width: 0, height: 0 });
-  const startPos = useRef({ x: 0, y: 0 });
+
   const canvasRef = useRef();
   const navigate = useNavigate();
 
@@ -66,7 +63,6 @@ export default function SwipeDrawerPage() {
         ...droppedItem,
         x,
         y,
-        scale: 1,
         id: `${droppedItem.id_item}-${Date.now()}`,
       },
     ]);
@@ -94,21 +90,6 @@ export default function SwipeDrawerPage() {
     }
   };
 
-  const handleWheel = (e, itemId) => {
-    e.preventDefault();
-    const delta = e.deltaY < 0 ? 0.05 : -0.05;
-    setCanvasItems((prev) =>
-      prev.map((item) =>
-        item.id === itemId
-          ? {
-              ...item,
-              scale: Math.max(0.2, Math.min(3, (item.scale || 1) + delta)),
-            }
-          : item
-      )
-    );
-  };
-
   const handlePointerUp = () => {
     setDraggingId(null);
   };
@@ -122,7 +103,6 @@ export default function SwipeDrawerPage() {
       ...item,
       x: centerX,
       y: centerY,
-      scale: 1,
       id: `${item.id_item}-${Date.now()}`,
     };
 
@@ -154,7 +134,20 @@ export default function SwipeDrawerPage() {
 
     try {
       canvasElement.classList.add("capture-mode");
-      const dataUrl = await domtoimage.toPng(canvasElement);
+
+      const scale = 2;
+      const style = {
+        transform: `scale(${scale})`,
+        transformOrigin: "top left",
+        width: `${canvasElement.offsetWidth}px`,
+        height: `${canvasElement.offsetHeight}px`,
+      };
+
+      const dataUrl = await domtoimage.toPng(canvasElement, {
+        width: canvasElement.offsetWidth * scale,
+        height: canvasElement.offsetHeight * scale,
+        style,
+      });
 
       if (!dataUrl) throw new Error("Gagal mengambil gambar canvas.");
 
@@ -170,65 +163,6 @@ export default function SwipeDrawerPage() {
     }
   };
 
-  const handleResizeStart = (e, item) => {
-    e.stopPropagation();
-    setResizingId(item.id);
-    startPos.current = { x: e.clientX, y: e.clientY };
-    initialSize.current = { 
-      width: 100 * (item.scale || 1), 
-      height: 120 * (item.scale || 1) 
-    };
-  };
-
-  const handleResizeMove = (e) => {
-    if (!resizingId) return;
-    
-    const deltaX = e.clientX - startPos.current.x;
-    const deltaY = e.clientY - startPos.current.y;
-    
-    // Calculate new dimensions maintaining aspect ratio
-    const newWidth = initialSize.current.width + deltaX;
-    const scale = Math.max(0.5, Math.min(3, newWidth / 100));
-    
-    setCanvasItems(prev =>
-      prev.map(item =>
-        item.id === resizingId 
-          ? { ...item, scale: Math.max(0.5, Math.min(3, scale)) } 
-          : item
-      )
-    );
-  };
-
-  const handleResizeEnd = () => {
-    if (!resizingId) return;
-    setResizingId(null);
-  };
-
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (resizingId) {
-        e.preventDefault();
-        handleResizeMove(e);
-      }
-    };
-    
-    const handleMouseUp = () => handleResizeEnd();
-
-    if (resizingId) {
-      document.body.style.cursor = 'nwse-resize';
-      document.body.style.userSelect = 'none';
-      window.addEventListener('mousemove', handleMouseMove, { passive: false });
-      window.addEventListener('mouseup', handleMouseUp);
-    }
-
-    return () => {
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [resizingId]);
-
   return (
     <div className="absolute top-0 left-0 right-0 z-50">
       <div className="bg-white flex justify-between items-center p-4 shadow-md">
@@ -242,7 +176,6 @@ export default function SwipeDrawerPage() {
           {loading ? "Memproses..." : "Lanjut"}
         </button>
       </div>
-
       <div className="px-4 pt-16 pb-32 flex flex-col items-center justify-center h-full w-full">
         <div
           ref={canvasRef}
@@ -257,46 +190,35 @@ export default function SwipeDrawerPage() {
             canvasItems.map((item) => (
               <div
                 key={item.id}
-                className="item-container group"
+                className="item-container"
                 style={{
                   top: item.y,
                   left: item.x,
                   position: "absolute",
-                  width: `${100 * (item.scale || 1)}px`,
-                  height: `${120 * (item.scale || 1)}px`,
+                  width: "100px",
+                  height: "120px",
                   zIndex: draggingId === item.id ? 2 : 1,
-                  transform: 'translate(-50%, -50%)',
-                  cursor: draggingId === item.id ? 'grabbing' : 'move',
                 }}
-                onPointerDown={(e) => handlePointerDown(e, item)}
               >
-                <div className="relative w-full h-full">
+                <div className="relative w-full h-full item">
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteItem(item.id);
-                    }}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center z-10 hover:bg-red-600 transition-opacity opacity-0 group-hover:opacity-100"
+                    onClick={() => handleDeleteItem(item.id)}
+                    className="delete-button absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center z-10"
                   >
                     ×
                   </button>
-                  <div 
-                    className="absolute bottom-0 right-0 w-4 h-4 bg-blue-500 rounded-tl-md cursor-nwse-resize z-10 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onPointerDown={(e) => {
-                      e.stopPropagation();
-                      handleResizeStart(e, item);
-                    }}
-                  />
                   <img
                     src={item.gambar}
                     alt={item.nama_item || "item"}
-                    className="w-full h-full object-contain select-none"
+                    onPointerDown={(e) => handlePointerDown(e, item)}
+                    crossOrigin="anonymous"
+                    className="gambar w-full h-full object-contain cursor-grab border-0"
                     style={{
-                      transform: `scale(${item.scale || 1})`,
-                      transformOrigin: 'center',
-                      transition: draggingId === item.id || resizingId === item.id ? 'none' : 'all 0.15s ease',
-                      touchAction: 'none',
-                      pointerEvents: 'auto',
+                      transition:
+                        draggingId === item.id
+                          ? "none"
+                          : "all 0.2s ease-in-out",
+                      touchAction: "none",
                     }}
                   />
                 </div>
@@ -309,7 +231,6 @@ export default function SwipeDrawerPage() {
           )}
         </div>
       </div>
-
       <div
         className={`fixed bottom-0 left-0 right-0 bg-white border-t-2 border-[#2E8B57] rounded-t-2xl z-50 transition-transform duration-300 ease-in-out ${
           drawerOpen ? "translate-y-0" : "translate-y-[75%]"
@@ -353,32 +274,31 @@ export default function SwipeDrawerPage() {
           </div>
         </div>
       </div>
-
       <style>{`
-        .capture-mode * {
-          outline: none !important;
-          box-shadow: none !important;
-        }
-        .capture.canvas-area {
-          border: none !important;
-          background-color: white !important;
-        }
-        .capture-mode .delete-button {
-          display: none !important;
-        }
-        .capture-mode .gambar,
-        .capture-mode .item-container,
-        .capture-mode .item-container .item {
-          border: none !important;
-          outline: none !important;
-          box-shadow: none !important;
-        }
-        canvas-area img {
-  user-select: none;
-  touch-action: none;
+      .capture-mode * {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
-      `}</style>
+.capture.canvas-area {
+  border: none !important;
+  background-color: white !important;
+  border-radius: 0 !important;
+}
+
+.capture-mode .delete-button {
+  display: none !important;
+}
+
+.capture-mode .gambar,
+.capture-mode .item-container,
+.capture-mode .item-container .item {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+`}</style>
+      ;
     </div>
   );
 }
