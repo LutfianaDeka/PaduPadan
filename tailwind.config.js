@@ -13,6 +13,20 @@ export default {
     "h-16",
   ],
   theme: {
+    colors: {
+      white: "#ffffff",
+      black: "#000000",
+      green: {
+        500: "#2E8B57",
+        600: "#276b48",
+      },
+      gray: {
+        100: "#f3f4f6",
+        200: "#e5e7eb",
+        300: "#d1d5db",
+        400: "#9ca3af",
+      },
+    },
     extend: {
       animation: {
         spinSlow: "spin 5s linear infinite",
@@ -35,4 +49,7 @@ export default {
     },
   },
   plugins: [],
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
 };

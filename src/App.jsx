@@ -8,7 +8,6 @@ import HomePage from "./component/home";
 import ContentPage from "./component/content";
 import ResetPass from "./component/reset_pass";
 import UpdatePass from "./component/update-pass";
-import Upload from "./component/upload";
 import Camera from "./component/kamera";
 import Preview from "./component/preview";
 import PreviewStyle from "./component/preview_style";
@@ -19,21 +18,24 @@ import AddStyle from "./component/addstyle";
 import StylePage from "./component/style";
 import FormStyle from "./component/formstyle";
 import DetailStylePage from "./component/detail_style";
+import useCreateUserProfile from "./hooks/useCreateUserProfile";
 
 function App() {
+
+  useCreateUserProfile();
+
   return (
     <div>
       <Router>
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<WelcomePage />} />
-          <Route path="/signup" element={<SignUpPage />} />
+          <Route path="/sign-up" element={<SignUpPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/content" element={<ContentPage />} />
           <Route path="/reset" element={<ResetPass />} />
           <Route path="/update-pass" element={<UpdatePass />} />
-          <Route path="/upload" element={<Upload />} />
           <Route path="/kamera" element={<Camera />} />
           <Route path="/preview" element={<Preview />} />
           <Route path="/preview_style" element={<PreviewStyle />} />

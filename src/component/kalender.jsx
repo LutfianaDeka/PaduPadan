@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import BottomMenu from "./menu";
+import Navbar from "../component/navbar";
 import { supabase } from "../lib/supabase";
 
 export default function Kalender() {
@@ -14,14 +15,12 @@ export default function Kalender() {
   const [selectedDateStyles, setSelectedDateStyles] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
 
-  // Ambil session user
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) setUserId(session.user.id);
     });
   }, []);
 
-  // Ambil style yang punya date_use
   useEffect(() => {
     if (!userId) return;
     supabase
@@ -61,7 +60,6 @@ export default function Kalender() {
     const matched = styleEvents.filter((e) => e.tanggal === tanggal);
     const maxPreview = 2;
 
-    
     return (
       <div className="relative h-[50px] w-full flex flex-wrap gap-1 justify-center items-center p-1">
         {matched.slice(0, maxPreview).map((e, i) => (
@@ -88,7 +86,7 @@ export default function Kalender() {
                 setModalOpen(true);
               }
             }}
-            className="absolute bottom-1 right-1 bg-black text-white text-xs px-1 rounded cursor-pointer"
+            className="absolute bottom-1 right-1 bg-green-600 text-white text-xs px-1 rounded cursor-pointer"
           >
             +{matched.length - maxPreview}
           </div>
@@ -96,14 +94,14 @@ export default function Kalender() {
       </div>
     );
   };
+
   return (
     <>
       {/* MODAL */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg max-w-md w-full p-4 shadow-xl relative">
-            {/* TANGGAL */}
-            <h3 className="text-center font-bold text-lg mb-2 text-black">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl w-full max-w-md p-4 shadow-xl relative">
+            <h3 className="text-center font-semibold text-lg mb-3 text-green-700">
               Outfit{" "}
               {selectedDate &&
                 new Date(selectedDate).toLocaleDateString("id-ID", {
@@ -114,12 +112,11 @@ export default function Kalender() {
                 })}
             </h3>
 
-            {/* OUTFIT LIST */}
-            <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto">
+            <div className="grid grid-cols-2 gap-3 max-h-[300px] overflow-y-auto">
               {selectedDateStyles.map((e, i) => (
                 <div
                   key={i}
-                  className="w-full aspect-square bg-white rounded shadow cursor-pointer hover:brightness-90 transition flex flex-col items-center justify-center"
+                  className="bg-white rounded-xl shadow border hover:shadow-md cursor-pointer transition"
                   onClick={() => {
                     navigate(`/detail_style/${e.style.id}`);
                     setModalOpen(false);
@@ -128,9 +125,9 @@ export default function Kalender() {
                   <img
                     src={e.style.gambar || "/placeholder.png"}
                     alt={e.style.nama_style || "Outfit"}
-                    className="max-w-full max-h-[80%] object-contain p-2"
+                    className="w-full h-32 object-cover rounded-t-xl"
                   />
-                  <p className="text-sm text-center text-black mt-1 truncate w-full px-1">
+                  <p className="text-sm text-center text-green-700 font-medium py-2 truncate">
                     {e.style.nama_style}
                   </p>
                 </div>
@@ -138,7 +135,7 @@ export default function Kalender() {
             </div>
             <button
               onClick={() => setModalOpen(false)}
-              className="mt-4 w-full py-2 bg-black text-white rounded hover:bg-gray-800"
+              className="mt-4 w-full py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold"
             >
               Tutup
             </button>
@@ -146,21 +143,24 @@ export default function Kalender() {
         </div>
       )}
 
-      <div className="min-h-screen p-4 bg-black">
-        <h2 className="text-center text-xl text-[#FFF313] font-bold mb-4">
-          Kalender Outfit
-        </h2>
+      {/* HALAMAN */}
+      <div className="min-h-screen bg-[#f9f9f9] pb-24">
+        <Navbar />
+        <div className="p-4">
+          <h2 className="text-center text-2xl font-bold text-green-700 mb-6">
+            Kalender Outfit
+          </h2>
 
-        <Calendar
-          className="w-full max-w-4xl mx-auto rounded bg-white p-2 shadow"
-          onChange={setValue}
-          value={value}
-          onClickDay={handleDayClick}
-          tileContent={tileContent}
-          prev2Label={null}
-          next2Label={null}
-        />
-        <BottomMenu />
+          <Calendar
+            className="w-full max-w-3xl mx-auto rounded-xl bg-white p-4 shadow-lg"
+            onChange={setValue}
+            value={value}
+            onClickDay={handleDayClick}
+            tileContent={tileContent}
+            prev2Label={null}
+            next2Label={null}
+          />
+        </div>
       </div>
     </>
   );

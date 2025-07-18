@@ -4,6 +4,8 @@ import { useState } from "react";
 import Swal from "sweetalert2";
 import { supabase } from "../lib/supabase";
 
+// ...import tetap sama
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -52,17 +54,12 @@ export default function LoginPage() {
     }
   };
 
-  const handleResetPassword = () => {
-    navigate("/reset");
-  };
-
-  const goToRegister = () => {
-    navigate("/signup");
-  };
-
   const loginWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
+      options: {
+        redirectTo: window.location.origin + "/home",
+      },
     });
 
     if (error) {
@@ -109,9 +106,10 @@ export default function LoginPage() {
             </button>
           </div>
 
+          {/* Tautan Lupa Password */}
           <p
-            onClick={handleResetPassword}
-            className="text-sm text-right text-green-600 hover:underline cursor-pointer"
+            onClick={() => navigate("/update-pass")}
+            className="text-sm text-right text-green-600 hover:underline cursor-pointer -mt-2"
           >
             Lupa password?
           </p>
@@ -136,18 +134,9 @@ export default function LoginPage() {
             <img src="/google.png" alt="Google" className="w-5 h-5" />
             <span className="text-sm text-gray-700">Lanjutkan dengan Google</span>
           </button>
-
-          <p className="text-center text-sm text-gray-600">
-            Belum punya akun?{" "}
-            <span
-              onClick={goToRegister}
-              className="text-green-600 font-medium cursor-pointer hover:underline"
-            >
-              Daftar sekarang
-            </span>
-          </p>
         </div>
       </div>
     </div>
   );
 }
+
