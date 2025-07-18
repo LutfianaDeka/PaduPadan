@@ -165,12 +165,12 @@ export default function ContentPage() {
 
       <div
         ref={scrollContainerRef}
-        className="post flex flex-col gap-4 overflow-y-auto h-[calc(100vh-56px-1px)] snap-y snap-mandatory w-screen-lg mx-auto"
+        className="post-container flex flex-col gap-4 overflow-y-scroll h-[calc(100vh-56px-1px)] snap-y snap-mandatory md:w-130 md:mx-auto bg-transparent scrollbar-none"
       >
         {publicStyles.map((style, index) => (
           <div
             key={style.style_id}
-            className="post snap-start"
+            className="post snap-start h-screen w-full flex flex-col justify-start"
             ref={(el) => (postRefs.current[index] = el)}
           >
             <div className="user flex gap-4 items-center py-3 px-3">
