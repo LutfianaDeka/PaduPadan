@@ -4,6 +4,8 @@ import { useState } from "react";
 import Swal from "sweetalert2";
 import { supabase } from "../lib/supabase";
 
+// ...import tetap sama
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -104,6 +106,14 @@ export default function LoginPage() {
             </button>
           </div>
 
+          {/* Tautan Lupa Password */}
+          <p
+            onClick={() => navigate("/update-pass")}
+            className="text-sm text-right text-green-600 hover:underline cursor-pointer -mt-2"
+          >
+            Lupa password?
+          </p>
+
           <button
             onClick={handleLogin}
             className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition"
@@ -129,3 +139,4 @@ export default function LoginPage() {
     </div>
   );
 }
+
