@@ -54,12 +54,14 @@ export default function DetailStylePage() {
         <h2 className="text-xl font-semibold mt-4">{style.style_name}</h2>
         {style.date_use && (
           <p className="text-sm text-gray-300 mt-1">
-            Digunakan pada: {new Date(style.date_use).toLocaleDateString("id-ID")}
+            Digunakan pada:{" "}
+            {new Date(style.date_use).toLocaleDateString("id-ID")}
           </p>
         )}
         <p className="text-xs text-gray-400 mt-1">
           Dibuat: {new Date(style.created_at).toLocaleString("id-ID")}
         </p>
+        <p className="text-xs text-gray-400 mt-1">Status: {style.status}</p>
       </div>
     </div>
   );

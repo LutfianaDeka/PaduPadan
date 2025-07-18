@@ -146,6 +146,7 @@ export default function StylePage() {
             </span>
           )}
         </div>
+
       </div>
 
       <div className="style-img grid grid-cols-2 gap-4 px-4 pt-6">
