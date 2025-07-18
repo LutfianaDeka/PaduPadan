@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import domtoimage from "dom-to-image-more"; // ✅ Ganti html2canvas
+import { useSwipeable } from "react-swipeable";
 
 export default function SwipeDrawerPage() {
   const [selectedItems] = useState([]);
@@ -13,6 +14,14 @@ export default function SwipeDrawerPage() {
   const [draggingId, setDraggingId] = useState(null);
   const [loading, setLoading] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
+  const [selectedCategory, setSelectedCategory] = useState("atasan");
+
+  const categories = ["atasan", "bawahan", "aksesoris"];
+  const swipeHandlers = useSwipeable({
+    onSwipedUp: () => setDrawerOpen(true),
+    onSwipedDown: () => setDrawerOpen(false),
+    delta: 50,
+  });
 
   const canvasRef = useRef();
   const navigate = useNavigate();
@@ -66,7 +75,7 @@ export default function SwipeDrawerPage() {
         id: `${droppedItem.id_item}-${Date.now()}`,
       },
     ]);
-    setDrawerOpen(false);
+    // setDrawerOpen(false);
   };
 
   const handlePointerDown = (e, item) => {
@@ -233,44 +242,77 @@ export default function SwipeDrawerPage() {
       </div>
       <div
         className={`fixed bottom-0 left-0 right-0 bg-white border-t-2 border-[#2E8B57] rounded-t-2xl z-50 transition-transform duration-300 ease-in-out ${
-          drawerOpen ? "translate-y-0" : "translate-y-[75%]"
+          drawerOpen ? "translate-y-0" : "translate-y-[30%]"
         }`}
-        style={{ maxHeight: "70vh" }}
+        style={{
+          maxHeight: "50vh",
+          height: drawerOpen ? "50vh" : "25vh",
+        }}
       >
         <div
+          {...swipeHandlers}
           onClick={() => setDrawerOpen(!drawerOpen)}
-          className="w-full py-4 cursor-pointer flex flex-col items-center"
+          className="w-full py-4 flex flex-col items-center cursor-pointer"
         >
-          <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
-          <p className="text-xs text-[#2E8B57] mt-1">
-            {drawerOpen ? "Klik untuk tutup" : "Klik untuk buka"}
-          </p>
+          <div className="w-full py-1 cursor-pointer flex flex-col items-center">
+            <div
+              className={`w-12 h-1.5 rounded-full transition-colors duration-300 ${
+                drawerOpen ? "bg-[#2E8B57]" : "bg-gray-400"
+              }`}
+            />
+
+            <div className="mt-2 text-xs text-[#2E8B57]">
+              {drawerOpen
+                ? "Geser ke bawah / klik untuk tutup"
+                : "Geser ke atas / klik untuk buka"}
+            </div>
+          </div>
         </div>
 
-        <div className="px-4 pb-10 overflow-y-auto max-h-[60vh]">
+        <div className="flex justify-center py-1 gap-2 mb- items-center">
+          {categories.map((kategori) => (
+            <button
+              key={kategori}
+              onClick={() => setSelectedCategory(kategori)}
+              className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                selectedCategory === kategori
+                  ? "bg-[#2E8B57] text-white"
+                  : "text-[#2E8B57] text-xs font-light border border-[#2E8B57]"
+              }`}
+            >
+              {kategori}
+            </button>
+          ))}
+        </div>
+
+        <div className="px-4 pb-60 overflow-y-auto max-h-[calc(100vh-200px)]">
           <h2 className="text-[#2E8B57] text-sm font-semibold mb-2">
             Pilih Style-mu
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {items.map((item) => (
-              <div
-                key={item.id_item}
-                draggable
-                onDragStart={(e) => handleDragStart(e, item)}
-                onClick={() => handleDrawerItemClick(item)}
-                className={`gambar rounded-xl overflow-hidden border-2 cursor-pointer transition-all duration-200 hover:scale-105 ${
-                  selectedItems.includes(item.id_item)
-                    ? "border-[#2E8B57] shadow-md"
-                    : "border-gray-200"
-                }`}
-              >
-                <img
-                  src={item.gambar}
-                  alt={item.nama_item}
-                  className="gambar w-full h-[150px] object-cover"
-                />
-              </div>
-            ))}
+            {items
+              .filter((item) => item.kategori === selectedCategory)
+              .map((item) => (
+                <div
+                  key={item.id_item}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, item)}
+                  onClick={() => handleDrawerItemClick(item)}
+                  className={`gambar rounded-xl overflow-hidden border-2 cursor-pointer transition-all duration-200 hover:scale-105 ${
+                    selectedItems.includes(item.id_item)
+                      ? "border-[#2E8B57] shadow-md"
+                      : "border-gray-200"
+                  }`}
+                >
+                  <div className="w-full h-[150px] flex items-center justify-center bg-white">
+                    <img
+                      src={item.gambar}
+                      alt={item.nama_item}
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  </div>
+                </div>
+              ))}
           </div>
         </div>
       </div>
