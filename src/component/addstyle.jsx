@@ -3,13 +3,22 @@ import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import html2canvas from "html2canvas";
+import { useSwipeable } from "react-swipeable";
 
 export default function SwipeDrawerPage() {
   const [selectedItems, setSelectedItems] = useState([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [items, setItems] = useState([]);
   const [userId, setUserId] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState("Atasan");
 
+  const categories = ["atasan", "bawahan", "aksesoris"];
+
+  const swipeHandlers = useSwipeable({
+    onSwipedUp: () => setDrawerOpen(true),
+    onSwipedDown: () => setDrawerOpen(false),
+    delta: 50,
+  });
   const canvasRef = useRef();
   const navigate = useNavigate();
 
@@ -70,7 +79,11 @@ export default function SwipeDrawerPage() {
           onClick={async () => {
             const canvasElement = canvasRef.current;
             if (!canvasElement) return;
-            const canvasImage = await html2canvas(canvasElement);
+            const canvasImage = await html2canvas(canvasRef.current, {
+              scale: 2, // ini penting
+              useCORS: true,
+            });
+
             const dataUrl = canvasImage.toDataURL("image/png");
             navigate("/preview_style", { state: { capturedImg: dataUrl } });
           }}
@@ -82,30 +95,39 @@ export default function SwipeDrawerPage() {
 
       <div className="px-4 pt-16 pb-32 h-full flex flex-col justify-center">
         <div
-          ref={canvasRef}
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
           className="bg-white rounded-xl flex-1 relative overflow-hidden flex items-center justify-center"
         >
           {selectedItems.length > 0 ? (
             <div
-              className="grid gap-4 p-4"
+              ref={canvasRef} // ⬅️ Dipindah ke sini
+              className="p-4 bg-white rounded-xl"
               style={{
-                gridTemplateColumns: `repeat(${Math.ceil(
-                  Math.sqrt(selectedItems.length)
-                )}, 1fr)`,
+                width: "fit-content",
+                height: "fit-content",
+                display: "inline-block",
               }}
             >
-              {items
-                .filter((item) => selectedItems.includes(item.id_item))
-                .map((item) => (
-                  <img
-                    key={item.id_item}
-                    src={item.gambar}
-                    alt={item.nama_item || "item"}
-                    className="w-[130px] h-[150px] object-contain"
-                  />
-                ))}
+              <div
+                className="grid gap-4"
+                style={{
+                  gridTemplateColumns: `repeat(${Math.ceil(
+                    Math.sqrt(selectedItems.length)
+                  )}, 1fr)`,
+                }}
+              >
+                {items
+                  .filter((item) => selectedItems.includes(item.id_item))
+                  .map((item) => (
+                    <img
+                      key={item.id_item}
+                      src={item.gambar}
+                      alt={item.nama_item || "item"}
+                      className="w-[130px] h-[150px] object-contain"
+                    />
+                  ))}
+              </div>
             </div>
           ) : (
             <p className="text-gray-400 text-sm text-center mt-10">
@@ -115,46 +137,77 @@ export default function SwipeDrawerPage() {
         </div>
       </div>
 
+      {/* DISINIIIIIIIIIIIIIIIIIIIIIIIIII */}
+      {/* Drawer Wrapper */}
       <div
-        className={`fixed bottom-0 left-0 right-0 bg-[#1a1a1a] rounded-t-2xl z-50 transition-transform duration-300 ease-in-out ${
-          drawerOpen ? "translate-y-0" : "translate-y-[75%]"
+        className={`fixed bottom-0 left-0 right-0 z-50 rounded-t-4xl transition-transform duration-300 ease-in-out bg-[#1a1a1a] ${
+          drawerOpen ? "translate-y-0" : "translate-y-[65%]"
         }`}
-        style={{ maxHeight: "70vh" }}
+        style={{
+          maxHeight: "50vh",
+          height: drawerOpen ? "50vh" : "25vh",
+        }}
       >
+        {/* Header Swipeable Area */}
         <div
+          {...swipeHandlers}
           onClick={() => setDrawerOpen(!drawerOpen)}
-          className="w-full py-4 cursor-pointer flex flex-col items-center"
+          className="w-full py-4 flex flex-col items-center cursor-pointer"
         >
-          <div className="w-12 h-1.5 bg-white/40 rounded-full" />
-          <p className="text-xs text-white/50 mt-1">
-            {drawerOpen ? "Klik untuk tutup" : "Klik untuk buka"}
-          </p>
+          <div className="w-full py-1 cursor-pointer flex flex-col items-center">
+            <div
+              className={`w-12 h-1.5 rounded-full transition-colors duration-300 ${
+                drawerOpen ? "bg-[#FFF313]" : "bg-white/40"
+              }`}
+            />
+
+            <div className="mt-2 text-xs text-white/50">
+              {drawerOpen
+                ? "Geser ke bawah / klik untuk tutup"
+                : "Geser ke atas / klik untuk buka"}
+            </div>
+          </div>
         </div>
 
-        <div className="px-4 pb-10 overflow-y-auto max-h-[60vh]">
-          <h2 className="text-white text-sm font-semibold mb-2">
-            Pilih Style-mu
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            {items.map((item) => (
-              <div
-                key={item.id_item}
-                draggable
-                onDragStart={(e) => handleDragStart(e, item)}
-                onClick={() => toggleSelect(item.id_item)}
-                className={`rounded-xl overflow-hidden border-4 cursor-move ${
-                  selectedItems.includes(item.id_item)
-                    ? "border-yellow-400"
-                    : "border-transparent"
-                }`}
-              >
-                <img
-                  src={item.gambar}
-                  alt={item.nama_item}
-                  className="w-full h-[150px] object-cover"
-                />
-              </div>
-            ))}
+        <div className="flex justify-center gap-7 mb-4 items-center">
+          {categories.map((kategori) => (
+            <button
+              key={kategori}
+              onClick={() => setSelectedCategory(kategori)}
+              className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                selectedCategory === kategori
+                  ? "bg-[#FFF313] text-black"
+                  : "bg-white/20 text-white"
+              }`}
+            >
+              {kategori}
+            </button>
+          ))}
+        </div>
+
+        <div className="px-4 pb-30 overflow-y-auto h-full">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+            {items
+              .filter((item) => item.kategori === selectedCategory)
+              .map((item) => (
+                <div
+                  key={item.id_item}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, item)}
+                  onClick={() => toggleSelect(item.id_item)}
+                  className={`rounded-xl overflow-hidden border-4 cursor-move ${
+                    selectedItems.includes(item.id_item)
+                      ? "border-yellow-400"
+                      : "border-transparent"
+                  }`}
+                >
+                  <img
+                    src={item.gambar}
+                    alt={item.nama_item}
+                    className="w-full h-[150px] object-contain"
+                  />
+                </div>
+              ))}
           </div>
         </div>
       </div>
