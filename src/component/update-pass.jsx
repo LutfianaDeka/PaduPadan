@@ -11,9 +11,9 @@ export default function UpdatePass() {
     if (!newPassword) {
       Swal.fire({
         icon: "warning",
-        title: "Password kosong",
+        title: "Password Kosong",
         text: "Silakan masukkan password baru",
-        confirmButtonColor: "#FFF313",
+        confirmButtonColor: "#16A34A", // Tailwind's green-600
       });
       return;
     }
@@ -27,14 +27,14 @@ export default function UpdatePass() {
         icon: "error",
         title: "Gagal",
         text: error.message,
-        confirmButtonColor: "#FFF313",
+        confirmButtonColor: "#16A34A",
       });
     } else {
       Swal.fire({
         icon: "success",
         title: "Berhasil!",
         text: "Password berhasil diperbarui. Silakan login ulang.",
-        confirmButtonColor: "#FFF313",
+        confirmButtonColor: "#16A34A",
       }).then(() => {
         window.location.href = "/login";
       });
@@ -42,39 +42,38 @@ export default function UpdatePass() {
   };
 
   return (
-    <>
-      <div className="update-pass">
-        <div className="reset min-h-screen overflow-auto bg-black flex flex-col items-center text-center">
-          <h2 className="text-white text-2xl font-bold mt-20 max-md:text-xl">
-            Masukkan Pass Anda yang baru
-          </h2>
-          <div className="pass relative mt-4">
-            {/* Eye Icon Inside Input */}
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Password baru"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full text-white bg-[#198499]/20 border-1 border-[#FFF313] rounded-[10px] pl-4 pr-10 py-3"
-            />
-            {/* Eye Icon Inside Input */}
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-3 flex items-center text-[#FFF313] focus:outline-none"
-            >
-              {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-            </button>
-          </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-100 to-white px-4">
+      <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md text-center border border-green-200">
+        <img src="/logo.png" alt="PaduPadan Logo" className="w-16 mx-auto mb-4" />
+        <h2 className="text-green-700 text-2xl font-bold mb-1">Perbarui Password</h2>
+        <p className="text-gray-500 text-sm mb-6">
+          Silakan buat password baru untuk melindungi akunmu.
+        </p>
 
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Password baru"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            className="w-full px-4 py-3 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 pr-10"
+          />
           <button
-            onClick={handleUpdatePassword}
-            className="text-black w-62 font-bold  py-3 bg-[#FFF313] rounded-full shadow-lg transition duration-300 ease-in-out transfor hover:bg-[#E1AD01] cursor-pointer mt-14"
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-600"
           >
-            KONFIRMASI
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
         </div>
+
+        <button
+          onClick={handleUpdatePassword}
+          className="mt-6 w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition shadow-sm"
+        >
+          Konfirmasi
+        </button>
       </div>
-    </>
+    </div>
   );
 }
