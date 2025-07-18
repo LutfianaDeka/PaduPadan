@@ -7,7 +7,6 @@ export default function Camera() {
   const webcamRef = useRef(null);
   const navigate = useNavigate();
 
-  // State untuk konfigurasi kamera
   const [facingMode, setFacingMode] = useState("environment");
   const [mediaTrack, setMediaTrack] = useState(null);
   const [zoom, setZoom] = useState(1);
@@ -15,55 +14,43 @@ export default function Camera() {
   const [maxZoom, setMaxZoom] = useState(5);
   const [zoomSupported, setZoomSupported] = useState(true);
   const [flashOn, setFlashOn] = useState(false);
-  const [isSwitching, setIsSwitching] = useState(false); // Untuk transisi kamera
+  const [isSwitching, setIsSwitching] = useState(false);
   const [focusPoint, setFocusPoint] = useState(null);
 
-  // Konfigurasi video
   const videoConstraints = {
     facingMode,
     width: { ideal: 1920 },
     height: { ideal: 1080 },
   };
 
-  // Transisi dan switch kamera
   const switchCamera = async () => {
-    setIsSwitching(true); // Transisi keluar
-
+    setIsSwitching(true);
     const stream = webcamRef.current?.stream;
     if (stream) stream.getTracks().forEach((track) => track.stop());
-
-    await new Promise((res) => setTimeout(res, 500)); // Waktu transisi
-
+    await new Promise((res) => setTimeout(res, 500));
     setFacingMode((prev) => (prev === "user" ? "environment" : "user"));
     setMediaTrack(null);
-
-    setTimeout(() => setIsSwitching(false), 500); // Transisi masuk
+    setTimeout(() => setIsSwitching(false), 500);
   };
 
-  // Ambil gambar secara manual dari elemen video
   const captureManual = useCallback(() => {
     const video = webcamRef.current?.video;
     if (!video) return;
-
     const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-
     const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
     const imgData = canvas.toDataURL("image/jpeg", 1.0);
     navigate("/preview", { state: { capturedImg: imgData } });
   }, [navigate]);
 
-  // Zoom handler
   const handleZoom = (e) => {
     const value = parseFloat(e.target.value);
     setZoom(value);
     mediaTrack?.applyConstraints?.({ advanced: [{ zoom: value }] });
   };
 
-  // Flash (torch)
   const toggleFlash = () => {
     const track = webcamRef.current?.stream?.getVideoTracks?.()[0];
     const capabilities = track?.getCapabilities();
@@ -78,30 +65,24 @@ export default function Camera() {
       .then(() => setFlashOn((prev) => !prev));
   };
 
-  // Fokus saat klik pada video
   const handleFocusClick = (e) => {
     const video = webcamRef.current?.video;
-    const track = webcamRef.current?.stream?.getVideoTracks?.()[0];
+    const track = webcamRef.current?.stream?.getVideoTracks?.[0];
     if (!video || !track) return;
 
     const rect = video.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
 
-    // Simpan posisi klik (untuk ikon fokus)
     setFocusPoint({ x: e.clientX, y: e.clientY });
-    setTimeout(() => setFocusPoint(null), 1000); // hilangkan setelah 1 detik
+    setTimeout(() => setFocusPoint(null), 1000);
 
     const capabilities = track.getCapabilities?.();
     if (capabilities?.pointsOfInterest) {
       track.applyConstraints({ advanced: [{ pointsOfInterest: [{ x, y }] }] });
-      console.log("Fokus ke:", x.toFixed(2), y.toFixed(2));
-    } else {
-      console.warn("Klik fokus tidak didukung.");
     }
   };
 
-  // Cek apakah zoom didukung, lalu ambil capabilities
   useEffect(() => {
     const interval = setInterval(() => {
       const track = webcamRef.current?.stream?.getVideoTracks?.()[0];
@@ -124,9 +105,9 @@ export default function Camera() {
   }, [facingMode]);
 
   return (
-    <div className="bg-black min-h-screen w-screen flex flex-col text-yellow-400">
-      {/* Area Kamera */}
-      <div className="relative flex items-center justify-center h-[70vh]">
+    <div className="bg-white min-h-screen w-screen flex flex-col text-green-800">
+      {/* Kamera Preview */}
+      <div className="relative flex items-center justify-center h-[70vh] bg-gray-100">
         <Webcam
           ref={webcamRef}
           audio={false}
@@ -142,7 +123,7 @@ export default function Camera() {
         />
         {focusPoint && (
           <div
-            className="absolute border-2 border-yellow-400 rounded-full w-16 h-16 animate-ping pointer-events-none"
+            className="absolute border-2 border-green-400 rounded-full w-16 h-16 animate-ping pointer-events-none"
             style={{
               top: focusPoint.y,
               left: focusPoint.x,
@@ -152,51 +133,46 @@ export default function Camera() {
         )}
       </div>
 
-      {/* Kontrol */}
-      <div className="flex items-center py-10">
-        <div className="w-full px-9 py-4 space-y-4">
-          {/* Zoom */}
-          {zoomSupported ? (
-            <div className="flex items-center text-sm space-x-2">
-              <span>+</span>
-              <input
-                type="range"
-                min={minZoom}
-                max={maxZoom}
-                step="0.1"
-                value={zoom}
-                onChange={handleZoom}
-                className="w-full accent-yellow-400"
-              />
-              <span>-</span>
-            </div>
-          ) : (
-            <p className="text-xs text-red-500 text-center">
-              Zoom tidak didukung di perangkat ini.
-            </p>
-          )}
-
-          {/* Tombol Kontrol */}
-          <div className="flex items-center justify-between px-4">
-            <button onClick={toggleFlash}>
-              <FaBolt
-                className={`text-2xl ${
-                  flashOn ? "text-[#FFF313]" : "text-gray-500"
-                }`}
-              />
-            </button>
-
-            <button
-              onClick={captureManual}
-              className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center"
-            >
-              <FaCamera className="text-black text-xl" />
-            </button>
-
-            <button onClick={switchCamera}>
-              <FaSyncAlt className="text-[#FFF313] text-2xl" />
-            </button>
+      {/* Kontrol Kamera */}
+      <div className="flex items-center justify-center pt-8 pb-10 px-8 flex-col gap-4">
+        {/* Zoom Slider */}
+        {zoomSupported && (
+          <div className="flex items-center text-sm space-x-2 w-full">
+            <span className="text-green-500 font-semibold">+</span>
+            <input
+              type="range"
+              min={minZoom}
+              max={maxZoom}
+              step="0.1"
+              value={zoom}
+              onChange={handleZoom}
+              className="w-full accent-green-600"
+            />
+            <span className="text-green-500 font-semibold">-</span>
           </div>
+        )}
+
+        {/* Tombol Aksi */}
+        <div className="flex items-center justify-between w-full px-6">
+          <button onClick={toggleFlash} title="Toggle Flash">
+            <FaBolt
+              className={`text-2xl transition ${
+                flashOn ? "text-green-600" : "text-gray-400"
+              }`}
+            />
+          </button>
+
+          <button
+            onClick={captureManual}
+            className="w-16 h-16 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center shadow-lg transition"
+            title="Ambil Gambar"
+          >
+            <FaCamera className="text-xl" />
+          </button>
+
+          <button onClick={switchCamera} title="Ganti Kamera">
+            <FaSyncAlt className="text-green-600 text-2xl" />
+          </button>
         </div>
       </div>
     </div>

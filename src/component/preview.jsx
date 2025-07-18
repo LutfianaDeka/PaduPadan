@@ -45,8 +45,6 @@ export default function Preview() {
 
       reader.onloadend = () => {
         const base64Image = reader.result;
-        // const elapsed = Date.now() - startTime;
-        // const delay = Math.max(0, 1500 - elapsed);
 
         const img = new Image();
         img.src = base64Image;
@@ -56,7 +54,6 @@ export default function Preview() {
           const delay = Math.max(0, 500 - elapsed);
 
           setTimeout(() => {
-            // ⚠️ JANGAN matikan loading dulu — biarkan dibuka oleh halaman berikut
             navigate("/addcloset", {
               state: {
                 capturedImg: base64Image,
@@ -84,25 +81,27 @@ export default function Preview() {
   };
 
   if (!capturedImg)
-    return <p className="text-center text-gray-500 mt-10">Tidak ada gambar.</p>;
+    return (
+      <p className="text-center text-gray-500 mt-10">Tidak ada gambar.</p>
+    );
 
   return (
     <div
-      className={`min-h-screen bg-gray-50 flex flex-col transition-opacity duration-300 ease-in-out ${
+      className={`min-h-screen bg-[#f5faf7] flex flex-col transition-opacity duration-300 ease-in-out ${
         isExiting ? "opacity-0" : "opacity-100"
       }`}
     >
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white px-4 py-4 shadow">
-        <h1 className="text-xl font-semibold text-gray-800 text-center">
+      <header className="sticky top-0 z-10 bg-white px-4 py-4 shadow-md">
+        <h1 className="text-xl font-semibold text-green-700 text-center">
           Pratinjau Gambar
         </h1>
-      </div>
+      </header>
 
       {/* Konten */}
-      <div className="flex-1 overflow-y-auto flex flex-col items-center px-4 pt-6 pb-10">
+      <main className="flex-1 overflow-y-auto flex flex-col items-center px-4 pt-6 pb-10">
         <div
-          className={`w-full max-w-sm aspect-[3/4] overflow-hidden rounded-xl shadow-md border transform transition-all duration-500 ease-out ${
+          className={`w-full max-w-sm aspect-[3/4] overflow-hidden rounded-2xl shadow-lg border border-green-200 transform transition-all duration-500 ease-out ${
             showImage ? "opacity-100 scale-100" : "opacity-0 scale-95"
           }`}
         >
@@ -115,24 +114,25 @@ export default function Preview() {
 
         <div className="w-full max-w-sm mt-6 pt-8 flex space-x-4">
           <button
-            className="flex-1 bg-red-500 text-white font-medium py-2 rounded-full hover:bg-red-600 transition"
+            className="flex-1 bg-white border border-green-500 text-green-700 font-medium py-2 rounded-full hover:bg-green-50 transition"
             onClick={() => navigate("/upload")}
           >
             Kembali
           </button>
           <button
-            className="flex-1 bg-yellow-400 text-black font-medium py-2 rounded-full hover:bg-yellow-300 transition"
+            className="flex-1 bg-green-600 text-white font-medium py-2 rounded-full hover:bg-green-700 transition"
             onClick={handleNext}
           >
             Lanjut
           </button>
         </div>
-      </div>
+      </main>
 
+      {/* Loading Overlay */}
       {loading && (
-        <div className="fixed inset-0 bg-white bg-opacity-60 flex flex-col items-center justify-center z-50">
-          <div className="w-10 h-10 border-4 border-yellow-400 border-t-transparent rounded-full animate-spinSlow"></div>
-          <p className="mt-4 text-gray-700 font-medium">Sedang memuat...</p>
+        <div className="fixed inset-0 bg-white bg-opacity-70 flex flex-col items-center justify-center z-50">
+          <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-green-800 font-semibold">Memproses gambar...</p>
         </div>
       )}
     </div>
