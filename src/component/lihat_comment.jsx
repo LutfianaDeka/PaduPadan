@@ -8,12 +8,21 @@ export default function LihatCommentPage({ open, onClose, styleId }) {
   const [isDragging, setIsDragging] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [localComments, setLocalComments] = useState([]);
+  const [isDesktop, setIsDesktop] = useState(false);
 
-  // Fetch komentar setiap kali styleId berubah (misalnya user klik style berbeda)
+  // Deteksi mode desktop
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 1024); // tailwind lg breakpoint
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   useEffect(() => {
     const fetchComments = async () => {
       if (!styleId) return;
-
       const { data, error } = await supabase
         .from("v_style_comment_with_user")
         .select("*")
@@ -59,7 +68,6 @@ export default function LihatCommentPage({ open, onClose, styleId }) {
       return;
     }
 
-    // Ambil komentar terbaru setelah insert
     const { data: updatedComments, error: fetchError } = await supabase
       .from("v_style_comment_with_user")
       .select("*")
@@ -75,8 +83,10 @@ export default function LihatCommentPage({ open, onClose, styleId }) {
   };
 
   const startDrag = (y) => {
-    setIsDragging(true);
-    startYRef.current = y;
+    if (!isDesktop) {
+      setIsDragging(true);
+      startYRef.current = y;
+    }
   };
 
   const updateDrag = (y) => {
@@ -126,12 +136,18 @@ export default function LihatCommentPage({ open, onClose, styleId }) {
       <div className="absolute inset-0 bg-black/20" onClick={onClose}></div>
 
       <div
-        className="absolute bottom-0 w-full bg-gray-100 rounded-t-3xl shadow-xs shadow-black/20 flex flex-col"
+        className={`absolute bg-gray-100 shadow-lg shadow-black/20 flex flex-col
+          ${
+            isDesktop
+              ? "top-0 right-0 w-[400px] h-full rounded-none"
+              : "bottom-0 w-full rounded-t-3xl"
+          }
+        `}
         style={{
-          height: "80%",
-          transform: `translateY(${translateY}px)`,
-          transition: isDragging ? "none" : "transform 0.3s ease",
-          touchAction: "none",
+          height: isDesktop ? "100%" : "80%",
+          transform: isDesktop ? "none" : `translateY(${translateY}px)`,
+          transition: isDragging && !isDesktop ? "none" : "transform 0.3s ease",
+          touchAction: isDesktop ? "auto" : "none",
         }}
         onMouseDown={(e) => startDrag(e.clientY)}
         onTouchStart={(e) => startDrag(e.touches[0].clientY)}
@@ -139,8 +155,8 @@ export default function LihatCommentPage({ open, onClose, styleId }) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex flex-col items-center pt-4 pb-4">
-          <div className="w-12 h-1 bg-black/30 rounded-full mb-2" />
+        <div className="flex flex-col items-center pt-4 pb-4 border-b border-gray-300">
+          <div className="w-12 h-1 bg-black/30 rounded-full mb-2 md:hidden" />
           <h2 className="text-sm">Komentar</h2>
         </div>
 
