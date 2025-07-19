@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import LihatCommentPage from "./lihat_comment";
+import userpic from "../assets/user.png";
 
 export default function ContentPage() {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ export default function ContentPage() {
   const postRefs = useRef([]);
   const scrollContainerRef = useRef(null);
   const location = useLocation();
+  const filteredFromState = location.state?.filtered || null;
 
   const [publicStyles, setPublicStyles] = useState([]);
   const [liked, setLiked] = useState([]);
@@ -21,6 +23,7 @@ export default function ContentPage() {
   const [showComments, setShowComments] = useState(false);
   const [commentIndex, setCommentIndex] = useState(null);
 
+  // Scroll otomatis ke index post tertentu (dari halaman sebelumnya)
   useEffect(() => {
     if (!isNaN(scrollToIndex) && postRefs.current[scrollToIndex]) {
       const offset = postRefs.current[scrollToIndex].offsetTop;
@@ -28,10 +31,12 @@ export default function ContentPage() {
     }
   }, [scrollToIndex, publicStyles]);
 
+  // Reset tampilan komentar saat berpindah route
   useEffect(() => {
     setShowComments(false);
   }, [location]);
 
+  // Ambil user aktif
   useEffect(() => {
     const getUser = async () => {
       const {
@@ -42,9 +47,16 @@ export default function ContentPage() {
     getUser();
   }, []);
 
+  // Ambil data style dari state atau database
   useEffect(() => {
-    fetchStyles();
-  }, []);
+    if (filteredFromState) {
+      setPublicStyles(filteredFromState);
+      fetchCounts(filteredFromState);
+      checkLiked(filteredFromState, userId);
+    } else {
+      fetchStyles();
+    }
+  }, [filteredFromState, userId]);
 
   const fetchStyles = async () => {
     const {
@@ -59,7 +71,10 @@ export default function ContentPage() {
       .eq("status", "public")
       .order("created_at", { ascending: false });
 
-    if (error) return console.error("Error ambil style:", error.message);
+    if (error) {
+      console.error("Error ambil style:", error.message);
+      return;
+    }
 
     setPublicStyles(data);
     fetchCounts(data);
@@ -92,15 +107,16 @@ export default function ContentPage() {
 
   const checkLiked = async (styles, userId) => {
     if (!userId) return setLiked(styles.map(() => false));
+
     const likedStatus = await Promise.all(
       styles.map(async (style) => {
-        const { data: likeData } = await supabase
+        const { data } = await supabase
           .from("style_like")
           .select("like_id")
           .eq("style_id", style.style_id)
           .eq("user_id", userId)
           .maybeSingle();
-        return !!likeData;
+        return !!data;
       })
     );
     setLiked(likedStatus);
@@ -123,15 +139,11 @@ export default function ContentPage() {
       });
     }
 
-    // Perbarui ulang jumlah like dan status
-    const newStyles = [...publicStyles];
-    fetchCounts(newStyles);
-    checkLiked(newStyles, userId);
+    // Refresh like & status
+    const updatedStyles = [...publicStyles];
+    fetchCounts(updatedStyles);
+    checkLiked(updatedStyles, userId);
   };
-
-  useEffect(() => {
-    setIsAnimating(Array(publicStyles.length).fill(false));
-  }, [publicStyles]);
 
   const handleDoubleClick = (index) => {
     if (!liked[index]) toggleLike(index);
@@ -139,17 +151,24 @@ export default function ContentPage() {
     const updated = [...isAnimating];
     updated[index] = true;
     setIsAnimating(updated);
+
     setTimeout(() => {
       updated[index] = false;
       setIsAnimating([...updated]);
     }, 800);
   };
 
+  // Inisialisasi animasi love saat data dimuat
+  useEffect(() => {
+    setIsAnimating(Array(publicStyles.length).fill(false));
+  }, [publicStyles]);
+
   return (
     <div className="konten bg-white min-h-screen flex flex-col">
+      {/* Header */}
       <div className="nav h-14 flex px-4 items-center justify-center">
         <div
-          className="ikon absolute left-4 text-gray-800"
+          className="ikon absolute left-4 text-gray-800 cursor-pointer"
           onClick={() => navigate("/home")}
         >
           <ArrowLeft />
@@ -163,20 +182,27 @@ export default function ContentPage() {
       </div>
       <hr className="border-t border-gray-600/80 mx-4" />
 
+      {/* Kontainer konten scroll */}
       <div
         ref={scrollContainerRef}
-        className="post-container flex flex-col gap-4 overflow-y-scroll h-[calc(100vh-56px-1px)] snap-y snap-mandatory md:w-130 md:mx-auto bg-transparent scrollbar-none"
+        className="post-container flex flex-col gap-4 overflow-y-scroll h-[calc(100vh-56px-1px)] snap-y snap-mandatory"
       >
         {publicStyles.map((style, index) => (
           <div
             key={style.style_id}
-            className="post snap-start h-screen w-full flex flex-col justify-start"
             ref={(el) => (postRefs.current[index] = el)}
+            className="post snap-start h-screen w-full flex flex-col justify-start md:w-130 md:mx-auto"
           >
+            {/* Info Pengguna */}
             <div className="user flex gap-4 items-center py-3 px-3">
               <img
-                src={`https://i.pravatar.cc/40?img=${index + 1}`}
-                alt="user"
+                src={
+                  style.profile_picture &&
+                  !style.profile_picture.endsWith("...")
+                    ? style.profile_picture
+                    : userpic
+                }
+                alt="Profile"
                 className="w-10 h-10 rounded-full object-cover"
               />
               <p className="text-xs text-black font-bold">
@@ -184,16 +210,18 @@ export default function ContentPage() {
               </p>
             </div>
 
+            {/* Gambar & Interaksi */}
             <div
-              className="img-post"
+              className="img-post relative"
               onDoubleClick={() => handleDoubleClick(index)}
             >
               <img
                 src={style.gambar}
                 alt={style.style_name}
-                className="w-full aspect-square bg-white object-contain border-1 border-gray-200"
+                className="w-full aspect-square bg-white object-contain border border-gray-200"
               />
 
+              {/* Animasi love */}
               {isAnimating[index] && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <svg
@@ -201,13 +229,13 @@ export default function ContentPage() {
                     className="w-20 h-20 text-white animate-pop"
                     viewBox="0 0 24 24"
                     fill="red"
-                    stroke="none"
                   >
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                   </svg>
                 </div>
               )}
 
+              {/* Reaksi Like & Komentar */}
               <div className="react flex gap-4 py-4 text-black px-3">
                 <div className="like flex items-center gap-1">
                   <button onClick={() => toggleLike(index)}>
@@ -227,6 +255,7 @@ export default function ContentPage() {
                   </button>
                   <p className="text-xs">{likeCounts[index] || 0}</p>
                 </div>
+
                 <div className="comment flex items-center gap-1">
                   <button
                     onClick={() => {
@@ -240,6 +269,7 @@ export default function ContentPage() {
                 </div>
               </div>
 
+              {/* Deskripsi */}
               <div className="desc px-3">
                 <h5 className="text-xs font-bold text-black">
                   {style.style_name}
@@ -251,13 +281,15 @@ export default function ContentPage() {
             </div>
           </div>
         ))}
+
+        {/* Komentar Modal */}
         {showComments && commentIndex !== null && (
           <LihatCommentPage
             open={showComments}
             onClose={() => {
               setShowComments(false);
               setCommentIndex(null);
-              fetchStyles(); // refresh jumlah komentar setelah menutup
+              if (!filteredFromState) fetchStyles();
             }}
             styleId={publicStyles[commentIndex]?.style_id}
           />
