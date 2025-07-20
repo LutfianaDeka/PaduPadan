@@ -1,5 +1,5 @@
 // tailwind.config.js
-import scrollbar from "tailwind-scrollbar";
+import scrollbarHide from "tailwind-scrollbar-hide";
 export default {
   content: ["./index.html", "./src/**/*.{js,jsx}"],
   safelist: [
@@ -49,8 +49,8 @@ export default {
       },
     },
   },
-  plugins: [scrollbar],
 
+  plugins: [scrollbarHide],
   future: {
     hoverOnlyWhenSupported: true,
   },
