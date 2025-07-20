@@ -115,7 +115,7 @@ export default function Preview() {
         <div className="w-full max-w-sm mt-6 pt-8 flex space-x-4">
           <button
             className="flex-1 bg-white border border-green-500 text-green-700 font-medium py-2 rounded-full hover:bg-green-50 transition"
-            onClick={() => navigate("/upload")}
+            onClick={() => navigate("/closet")}
           >
             Kembali
           </button>

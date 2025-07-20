@@ -32,12 +32,12 @@ export default function AddCloset() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     if (!userId) {
       alert("User belum login.");
       return;
     }
-  
+
     const { data, error } = await supabase.from("item_wardrobe").insert([
       {
         user_id: userId,
@@ -45,7 +45,7 @@ export default function AddCloset() {
         gambar: capturedImg,
       },
     ]);
-  
+
     if (error) {
       console.error("Gagal menyimpan:", error.message);
     } else {
@@ -63,8 +63,6 @@ export default function AddCloset() {
       });
     }
   };
-  
-  
 
   if (!capturedImg) {
     return (
@@ -85,7 +83,7 @@ export default function AddCloset() {
       {/* Sticky Header */}
       <div className="sticky top-0 z-10 bg-white shadow-md w-full max-w-md mx-auto px-4 py-3 flex items-center justify-between">
         <button
-          onClick={() => navigate("/upload")}
+          onClick={() => navigate("/closet")}
           className="text-green-500 hover:text-green-600 text-xl"
         >
           <FaArrowLeft />
