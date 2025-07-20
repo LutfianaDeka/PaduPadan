@@ -18,6 +18,7 @@ import AddStyle from "./component/addstyle";
 import StylePage from "./component/style";
 import FormStyle from "./component/formstyle";
 import DetailStylePage from "./component/detail_style";
+import ProfilePage from "./component/profile";
 import useCreateUserProfile from "./hooks/useCreateUserProfile";
 import InstallPWA from "./component/installpwa";
 
@@ -48,6 +49,7 @@ function App() {
           <Route path="/addstyle" element={<AddStyle />} />
           <Route path="/style" element={<StylePage />} />
           <Route path="/detail_style/:style_id" element={<DetailStylePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </Router>
       <InstallPWA/>
