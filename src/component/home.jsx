@@ -21,6 +21,7 @@ export default function HomePage() {
       if (error) {
         console.error("Gagal ambil style:", error.message);
       } else {
+        console.log(data);
         setPublicStyles(data);
       }
     };
@@ -63,7 +64,8 @@ export default function HomePage() {
                 />
                 <div className="p-3 border-t border-gray-100 flex gap-3 items-start">
                   <img
-                    src={`https://i.pravatar.cc/40?u=${style.user_id}`}
+                    // src={`https://i.pravatar.cc/40?u=${style.user_id}`}
+                    src={style.profile_picture}
                     alt="user"
                     className="w-7 h-7 rounded-full object-cover"
                   />
