@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { SendHorizontal } from "lucide-react";
 import { supabase } from "../lib/supabase";
+import userpic from "../assets/user.png";
 
 export default function LihatCommentPage({ open, onClose, styleId }) {
   const startYRef = useRef(0);
@@ -8,14 +9,33 @@ export default function LihatCommentPage({ open, onClose, styleId }) {
   const [isDragging, setIsDragging] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [localComments, setLocalComments] = useState([]);
-  const [isDesktop, setIsDesktop] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+  const [userProfile, setUserProfile] = useState(null);
 
-  // Deteksi mode desktop
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session?.user) {
+        const { data, error } = await supabase
+          .from("users")
+          .select("profile_picture")
+          .eq("user_id", session.user.id)
+          .single();
+
+        if (!error && data) setUserProfile(data);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
   useEffect(() => {
     const handleResize = () => {
-      setIsDesktop(window.innerWidth >= 1024); // tailwind lg breakpoint
+      setIsDesktop(window.innerWidth >= 1024);
     };
-    handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -23,22 +43,18 @@ export default function LihatCommentPage({ open, onClose, styleId }) {
   useEffect(() => {
     const fetchComments = async () => {
       if (!styleId) return;
+
       const { data, error } = await supabase
         .from("v_style_comment_with_user")
         .select("*")
         .eq("style_id", styleId)
         .order("created_at", { ascending: true });
 
-      if (error) {
-        console.error("Gagal ambil komentar:", error.message);
-      } else {
-        setLocalComments(data);
-      }
+      if (!error) setLocalComments(data);
+      else console.error("Gagal ambil komentar:", error.message);
     };
 
-    if (open && styleId) {
-      fetchComments();
-    }
+    if (open && styleId) fetchComments();
   }, [styleId, open]);
 
   const handleAddComment = async () => {
@@ -46,40 +62,36 @@ export default function LihatCommentPage({ open, onClose, styleId }) {
 
     const {
       data: { session },
-      error: sessionError,
     } = await supabase.auth.getSession();
-    if (sessionError || !session?.user) {
+
+    if (!session?.user) {
       alert("Silakan login terlebih dahulu.");
       return;
     }
 
-    const user = session.user;
-
     const { error: insertError } = await supabase.from("style_comment").insert([
       {
         comment: newComment,
-        user_id: user.id,
+        user_id: session.user.id,
         style_id: styleId,
       },
     ]);
 
     if (insertError) {
-      console.error("❌ Gagal tambah komentar:", insertError.message);
+      console.error("Gagal tambah komentar:", insertError.message);
       return;
     }
 
-    const { data: updatedComments, error: fetchError } = await supabase
+    setNewComment("");
+
+    const { data: updated, error: fetchError } = await supabase
       .from("v_style_comment_with_user")
       .select("*")
       .eq("style_id", styleId)
       .order("created_at", { ascending: true });
 
-    if (fetchError) {
-      console.error("❌ Gagal ambil komentar:", fetchError.message);
-    } else {
-      setLocalComments(updatedComments);
-      setNewComment("");
-    }
+    if (!fetchError) setLocalComments(updated);
+    else console.error("Gagal refresh komentar:", fetchError.message);
   };
 
   const startDrag = (y) => {
@@ -90,9 +102,10 @@ export default function LihatCommentPage({ open, onClose, styleId }) {
   };
 
   const updateDrag = (y) => {
-    if (!isDragging) return;
-    const deltaY = y - startYRef.current;
-    if (deltaY > 0) setTranslateY(deltaY);
+    if (isDragging) {
+      const deltaY = y - startYRef.current;
+      if (deltaY > 0) setTranslateY(deltaY);
+    }
   };
 
   const endDrag = () => {
@@ -102,6 +115,7 @@ export default function LihatCommentPage({ open, onClose, styleId }) {
     else setTranslateY(0);
   };
 
+  // Drag on desktop
   useEffect(() => {
     const handleMouseMove = (e) => updateDrag(e.clientY);
     const handleMouseUp = () => endDrag();
@@ -117,6 +131,7 @@ export default function LihatCommentPage({ open, onClose, styleId }) {
     };
   }, [isDragging]);
 
+  // Drag on mobile
   useEffect(() => {
     const handleTouchMove = (e) => {
       if (isDragging) {
@@ -131,18 +146,18 @@ export default function LihatCommentPage({ open, onClose, styleId }) {
 
   if (!open) return null;
 
+  const getProfilePic = (url) => (url && !url.endsWith("...") ? url : userpic);
+
   return (
     <div className="fixed inset-0 z-50 text-black">
-      <div className="absolute inset-0 bg-black/20" onClick={onClose}></div>
+      <div className="absolute inset-0 bg-black/20" onClick={onClose} />
 
       <div
-        className={`absolute bg-gray-100 shadow-lg shadow-black/20 flex flex-col
-          ${
-            isDesktop
-              ? "top-0 right-0 w-[400px] h-full rounded-none"
-              : "bottom-0 w-full rounded-t-3xl"
-          }
-        `}
+        className={`absolute bg-gray-100 shadow-lg shadow-black/20 flex flex-col ${
+          isDesktop
+            ? "top-0 right-0 w-[400px] h-full rounded-none"
+            : "bottom-0 w-full rounded-t-3xl"
+        }`}
         style={{
           height: isDesktop ? "100%" : "80%",
           transform: isDesktop ? "none" : `translateY(${translateY}px)`,
@@ -156,13 +171,14 @@ export default function LihatCommentPage({ open, onClose, styleId }) {
       >
         {/* Header */}
         <div className="flex flex-col items-center pt-4 pb-4 border-b border-gray-300">
-          <div className="w-12 h-1 bg-black/30 rounded-full mb-2 md:hidden" />
-          <h2 className="text-sm">Komentar</h2>
+          {!isDesktop && (
+            <div className="w-12 h-1 bg-black/30 rounded-full mb-2" />
+          )}
+          <h2 className="text-sm font-medium">Komentar</h2>
         </div>
 
         {/* Komentar */}
         <div className="flex-1 overflow-y-auto px-4">
-          <style>{`div::-webkit-scrollbar { display: none; }`}</style>
           <div className="space-y-3 pt-2 pb-4">
             {localComments.length === 0 ? (
               <p className="text-gray-500 mt-4 text-xs">Belum ada komentar.</p>
@@ -170,7 +186,7 @@ export default function LihatCommentPage({ open, onClose, styleId }) {
               localComments.map((comment, idx) => (
                 <div key={idx} className="flex items-start gap-3">
                   <img
-                    src={`https://i.pravatar.cc/40?img=${(idx % 70) + 1}`}
+                    src={getProfilePic(comment.profile_picture)}
                     alt="avatar"
                     className="w-8 h-8 rounded-full object-cover"
                   />
@@ -188,7 +204,7 @@ export default function LihatCommentPage({ open, onClose, styleId }) {
         <div className="p-4 border-t border-gray-300">
           <div className="flex items-center gap-2">
             <img
-              src="https://i.pravatar.cc/32?img=12"
+              src={getProfilePic(userProfile?.profile_picture)}
               alt="User"
               className="w-8 h-8 rounded-full object-cover"
             />
