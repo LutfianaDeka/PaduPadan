@@ -23,6 +23,31 @@ export default function ContentPage() {
   const [showComments, setShowComments] = useState(false);
   const [commentIndex, setCommentIndex] = useState(null);
 
+  const [setUserProfile] = useState(null);
+
+  // ambil foto user
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session?.user) {
+        const { data, error } = await supabase
+          .from("users")
+          .select("profile_picture")
+          .eq("user_id", session.user.id)
+          .single();
+
+        if (!error && data) setUserProfile(data);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
+  const getProfilePic = (url) => (url && !url.endsWith("...") ? url : userpic);
+
   // Scroll otomatis ke index post tertentu (dari halaman sebelumnya)
   useEffect(() => {
     if (!isNaN(scrollToIndex) && postRefs.current[scrollToIndex]) {
@@ -196,12 +221,7 @@ export default function ContentPage() {
             {/* Info Pengguna */}
             <div className="user flex gap-4 items-center py-3 px-3">
               <img
-                src={
-                  style.profile_picture &&
-                  !style.profile_picture.endsWith("...")
-                    ? style.profile_picture
-                    : userpic
-                }
+                src={getProfilePic(style.profile_picture)}
                 alt="Profile"
                 className="w-10 h-10 rounded-full object-cover"
               />

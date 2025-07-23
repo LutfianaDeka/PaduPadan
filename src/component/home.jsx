@@ -15,7 +15,30 @@ export default function HomePage() {
   const [filteredStyles, setFilteredStyles] = useState([]); // Hasil pencarian
   const [searchTrigger, setSearchTrigger] = useState(false); // Tambahan: trigger manual
   const [isLoading, setIsLoading] = useState(true);
+  const [setUserProfile] = useState(null);
+  
+  // ambil foto user
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
+      if (session?.user) {
+        const { data, error } = await supabase
+          .from("users")
+          .select("profile_picture")
+          .eq("user_id", session.user.id)
+          .single();
+
+        if (!error && data) setUserProfile(data);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
+  const getProfilePic = (url) => (url && !url.endsWith("...") ? url : userpic);
   useEffect(() => {
     const fetchPublicStyles = async () => {
       setIsLoading(true); // mulai loading
@@ -122,12 +145,7 @@ export default function HomePage() {
                   />
                   <div className="p-3 border-t border-gray-100 flex gap-3 items-start">
                     <img
-                      src={
-                        style.profile_picture &&
-                        !style.profile_picture.endsWith("...")
-                          ? style.profile_picture
-                          : userpic
-                      }
+                      src={getProfilePic(style.profile_picture)}
                       alt="Profile"
                       className="w-10 h-10 rounded-full object-cover"
                     />
