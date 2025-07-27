@@ -75,9 +75,17 @@ export default function LoginPage() {
     <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-green-100 to-white px-4">
       <div className="bg-white shadow-lg rounded-2xl p-10 w-full max-w-md">
         <div className="mb-6 text-center">
-          <img src="/logo.png" alt="PaduPadan Logo" className="w-20 mx-auto mb-2" />
-          <h2 className="text-2xl font-semibold text-green-700">Masuk ke PaduPadan</h2>
-          <p className="text-gray-500 text-sm">Padupadankan outfit favoritmu!</p>
+          <img
+            src="/logo.png"
+            alt="PaduPadan Logo"
+            className="w-20 mx-auto mb-2"
+          />
+          <h2 className="text-2xl font-semibold text-green-700">
+            Masuk ke PaduPadan
+          </h2>
+          <p className="text-gray-500 text-sm">
+            Padupadankan outfit favoritmu!
+          </p>
         </div>
 
         <div className="space-y-4">
@@ -108,7 +116,7 @@ export default function LoginPage() {
 
           {/* Tautan Lupa Password */}
           <p
-            onClick={() => navigate("/update-pass")}
+            onClick={() => navigate("/reset")}
             className="text-sm text-right text-green-600 hover:underline cursor-pointer -mt-2"
           >
             Lupa password?
@@ -132,11 +140,12 @@ export default function LoginPage() {
             className="w-full border border-gray-300 py-3 rounded-lg flex justify-center items-center gap-2 hover:shadow-md transition"
           >
             <img src="/google.png" alt="Google" className="w-5 h-5" />
-            <span className="text-sm text-gray-700">Lanjutkan dengan Google</span>
+            <span className="text-sm text-gray-700">
+              Lanjutkan dengan Google
+            </span>
           </button>
         </div>
       </div>
     </div>
   );
 }
-
